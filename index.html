@@ -277,7 +277,7 @@ function tone(s){return /隔离|冲突|中断|失败|过期|不可|优先|已弃
 const card=(title,body,tools='',cls='')=>`<section class="card ${cls}"><div class="cardhead"><h2>${title}</h2>${tools}</div><div class="cardbody">${body}</div></section>`;
 const note=(text,type='')=>`<div class="note ${type}">${ico(type==='error'||type==='warn'?'alert':'info')}<div>${text}</div></div>`;
 const kv=(rows)=>`<div class="kv">${rows.map(([k,v,html])=>`<span>${h(k)}</span><b>${html?v:h(v)}</b>`).join('')}</div>`;
-const empty=(title='暂无符合条件的数据',sub='更改筛选条件，或新增一条记录。')=>`<div class="empty">${ico('clipboard')}<b>${h(title)}</b><p class="small">${h(sub)}</p></div>`;
+const empty=(title='暂无记录',sub='当前没有可显示的内容。')=>`<div class="empty">${ico('clipboard')}<b>${h(title)}</b><p class="small">${h(sub)}</p></div>`;
 const tabs=(items,selected,name)=>`<div class="tabs">${items.map(i=>`<button type="button" class="${i===selected?'active':''}" ${act(name,i)}>${h(i)}</button>`).join('')}</div>`;
 const seg=(items,selected,name)=>`<div class="seg">${items.map(i=>`<button type="button" class="${String(i)===String(selected)?'active':''}" ${act(name,i)}>${name==='calendar-days'?h(i)+'天':h(i)}</button>`).join('')}</div>`;
 const money=(n,d=0)=>'¥ '+Number(n||0).toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});
