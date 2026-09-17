@@ -79,15 +79,15 @@ const AVATAR_ART={'林芊芊':'mother01','王丽艳':'staff01','张凤新':'staf
 'use strict';
 const DEMO_DAY='2026-09-16';
 const CLOCK='10:30';
-const STORAGE_KEY='yuehu-internal-v3-staff-real';
+const STORAGE_KEY='yuehu-internal-v3-bottle';
 const MODULES=[
 ['dashboard','运营驾驶舱','grid','工作空间','今日在所、待办与异常。'],
 ['twin','数字孪生中心','layers','工作空间','楼层房间、在住与责任。'],
 ['residents','母婴中心','heart','母婴与照护','母亲与宝宝档案。'],
 ['care','护理工作台','clipboard','母婴与照护','本班待办与执行。'],
 ['handover','托管接还与交班','handover','母婴与照护','托管送交、接收与交班。'],
-['feeding','喂养核验','scan','母婴与照护','宝宝与容器核验、实际喂养。'],
-['milk','奶源与冷链追溯','bottle','母婴与照护','容器台账与冷链状态。'],
+['feeding','喂养核验','scan','母婴与照护','宝宝与奶瓶核验、实际喂养。'],
+['milk','奶源与冷链追溯','bottle','母婴与照护','奶瓶台账与冷链状态。'],
 ['rooms','入住排房','calendar','资源与履约','房间排期与入住准备。'],
 ['dispatch','月嫂派单与排班','users','资源与履约','人员排期与派单。'],
 ['appointments','内部服务预约','sparkles','资源与履约','内部服务预约。'],
@@ -202,7 +202,7 @@ function seed(){
  ['T003','M001','生活照护','确认午休偏好与下午服务','11:00','待执行','E001'],
  ['T004','M002','营养','核对午餐替换及禁忌','11:20','待执行','E011'],
  ['T005','B003','观察','记录生活照护观察','10:15','进行中','E002'],
- ['T006','B005','喂养','核验容器并记录喂养','11:00','待执行','E004'],
+ ['T006','B005','喂养','核验奶瓶并记录喂养','11:00','待执行','E004'],
  ['T007','M005','生活照护','入住物品及服务需求核对','11:30','待执行','E004'],
  ['T008','B006','清洁照护','完成已确认清洁照护项目','14:00','待执行','E004'],
  ['T009','M001','观察','日常观察记录','09:00','已完成','E001'],
@@ -232,7 +232,7 @@ function seed(){
  ];
  const events=[
  {id:'EV001',title:'林小安托管交接待接收',kind:'交接',level:'优先',state:'待响应',where:'A301 → 护理室',owner:'E002',subject:'B002',time:'10:18',detail:'送交已记录，接收尚未完成；当前照护责任仍保留在送交人。',cause:'handover',actions:[]},
- {id:'EV002',title:'FR-01 失联，2个容器待核实',kind:'冷链',level:'优先',state:'处理中',where:'3F 配奶间',owner:'E002',subject:'FR-01',time:'10:12',detail:'设备状态过期，关联容器已隔离。恢复设备与复核奶源分开处理。',cause:'milk',actions:[{actor:'E002',note:'已隔离受影响容器，并通知设备负责人。',time:'10:15'}]},
+ {id:'EV002',title:'FR-01 失联，2瓶奶待核实',kind:'冷链',level:'优先',state:'处理中',where:'3F 配奶间',owner:'E002',subject:'FR-01',time:'10:12',detail:'设备状态过期，关联奶瓶已隔离。恢复设备与复核奶源分开处理。',cause:'milk',actions:[{actor:'E002',note:'已隔离受影响奶瓶，并通知设备负责人。',time:'10:15'}]},
  {id:'EV003',title:'A310 维修完成后需清洁复核',kind:'设施',level:'普通',state:'处理中',where:'A310',owner:'E014',subject:'AC-310',time:'09:45',detail:'新风设备报修中，房间不可入住。',cause:'room',actions:[]},
  {id:'EV004',title:'韩舒双胎入住人员尚未确认',kind:'资源',level:'普通',state:'待响应',where:'09/18 待入住',owner:'E003',subject:'C017',time:'09:30',detail:'房间已软占位，需落实具备双胎照护能力的人员。',cause:'dispatch',actions:[]},
  {id:'EV005',title:'沈知意午餐替餐需复核',kind:'餐食',level:'普通',state:'待响应',where:'A302',owner:'E011',subject:'M002',time:'10:05',detail:'本人已登记花生过敏，临时替餐须核对原料与餐单版本。',cause:'meal',actions:[]},
@@ -255,11 +255,11 @@ function seed(){
  contracts[0].rights.heldAppointments=1;contracts[1].rights.heldAppointments=1;contracts[4].rights.heldAppointments=1;
  const jobs=[{id:'JOB001',room:'A309',type:'离店清洁',state:'待开始',worker:'E013',reviewer:null,checks:[],note:''},{id:'JOB002',room:'A310',type:'维修后复机',state:'维修中',worker:'E014',reviewer:null,checks:[],note:''},{id:'JOB003',room:'B409',type:'离店清洁',state:'待验收',worker:'E013',reviewer:null,checks:['用品清点','表面清洁','卫生间清洁','设备检查'],note:'清洁已记录，等待独立验收。'}];
  const sync=[{id:'SYNC001',entity:'HO001',type:'交接事件',state:'已同步',attempts:1,time:'10:18',version:1},{id:'SYNC002',entity:'EV002',type:'设备影响事件',state:'待补传',attempts:2,time:'10:15',version:1},{id:'SYNC003',entity:'MEAL002',type:'餐单版本',state:'已同步',attempts:1,time:'10:05',version:1}];
- const activity=[{id:'LOG001',time:'10:18',kind:'交接',title:'林小安送达护理室，等待接收',detail:'当前责任未转移 · HO001',target:'handover'}, {id:'LOG002',time:'10:15',kind:'冷链',title:'2个容器进入隔离状态',detail:'FR-01 数据中断 · 需独立复核',target:'milk'}, {id:'LOG003',time:'10:05',kind:'餐食',title:'沈知意午餐餐单等待替餐',detail:'已登记禁忌与新餐单存在冲突',target:'meals'}, {id:'LOG004',time:'10:00',kind:'房务',title:'B409 清洁已提交验收',detail:'房间尚未恢复可入住',target:'house'}];
+ const activity=[{id:'LOG001',time:'10:18',kind:'交接',title:'林小安送达护理室，等待接收',detail:'当前责任未转移 · HO001',target:'handover'}, {id:'LOG002',time:'10:15',kind:'冷链',title:'2瓶奶进入隔离状态',detail:'FR-01 数据中断 · 需独立复核',target:'milk'}, {id:'LOG003',time:'10:05',kind:'餐食',title:'沈知意午餐餐单等待替餐',detail:'已登记禁忌与新餐单存在冲突',target:'meals'}, {id:'LOG004',time:'10:00',kind:'房务',title:'B409 清洁已提交验收',detail:'房间尚未恢复可入住',target:'house'}];
  const records=[{id:'REC001',subject:'M001',type:'生活观察',note:'本人反馈希望下午普通服务集中安排；已确认午休时段。',actor:'E001',time:'09:00',source:'现场登记'}, {id:'REC002',subject:'B001',type:'喂养',note:'按已确认个体计划执行；实际喂养60mL。',actor:'E001',time:'08:10',source:'人工核验'}, {id:'REC003',subject:'B001',type:'体重',note:'3.15kg，人工录入称重结果，仅呈现趋势。',actor:'E001',time:'09:20',source:'称重记录'}];
- return {schema:4,rooms,staff,mothers,babies,contracts,bookings,tasks,milk,devices,events,handovers,requests,assignments,segments,payroll,recipes,meals,appointments,jobs,sync,activity,records,rightsLog:[],refunds:[],shiftPackages:[],drafts:[],seq:100,config:{softHours:24,cleanHours:4,firstPayment:20,timezone:'Asia/Shanghai'},lastSaved:null};
+ return {schema:5,rooms,staff,mothers,babies,contracts,bookings,tasks,milk,devices,events,handovers,requests,assignments,segments,payroll,recipes,meals,appointments,jobs,sync,activity,records,rightsLog:[],refunds:[],shiftPackages:[],drafts:[],seq:100,config:{softHours:24,cleanHours:4,firstPayment:20,timezone:'Asia/Shanghai'},lastSaved:null};
 }
-let S;try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');S=x?.schema===4?x:seed();}catch(_){S=seed();}
+let S;try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');S=x?.schema===5?x:seed();}catch(_){S=seed();}
 const U={page:'dashboard',role:'运营主管',floor:3,room:'A301',mother:'M001',baby:'B001',caseTab:'总览',days:14,date:'2026-09-16',roomFloor:'全部',roomType:'全部',roomState:'全部',selectedBooking:'BK001',selectedStaff:'E006',request:'REQ001',dispatchTab:'人力排期',staffFilter:'全部',careFilter:'全部',careView:'看板',handoverTab:'托管接还',feedBaby:'B001',scan:null,scanError:'',scanStep:1,milkState:'全部',contract:'C001',rightsTab:'服务权益',pay:'PY001',payFilter:'全部',mealState:'全部',eventState:'全部',eventLevel:'全部',selectedEvent:'EV001',houseState:'全部',deviceType:'全部',systemTab:'集成监控',layers:{mother:true,baby:true,staff:true,device:true,alert:true},offline:false,drawer:null,tour:null,lastFocus:null,search:'',analysisView:'履约经营'};
 
 
@@ -372,8 +372,8 @@ rooms:btn('入住测算','sim','','','chart')+btn('新建排房','booking-new','
 dispatch:btn('查看人员档案','staff-details',U.selectedStaff,'','file')+btn('发布班表','roster-publish','','primary','calendar'),
 care:btn('交班包','shift-package','','','handover')+btn('新建护理任务','task-new','','primary','plus'),
 handover:btn('生成交班包','shift-package','','','file')+btn('发起托管接还','handover-new','','primary','plus'),
-feeding:btn('查看容器台账','go','milk','','bottle'),
-milk:btn('导出容器台账','export-milk','','','download')+btn('接收奶源','milk-new','','primary','plus'),
+feeding:btn('查看奶瓶台账','go','milk','','bottle'),
+milk:btn('导出奶瓶台账','export-milk','','','download')+btn('接收奶源','milk-new','','primary','plus'),
 appointments:btn('今日预约清单','export-appointments','','','download')+btn('新建内部预约','appointment-new','','primary','plus'),
 rights:btn('导出权益流水','export-rights','','','download')+btn('合同详情','contract-detail',U.contract,'primary','file'),
 meals:btn('导出配餐单','export-meals','','','download')+btn('查看本餐禁忌','meal-allergens','','primary','shield'),
@@ -500,10 +500,10 @@ function feedingView(){
  return `<div class="filters"><div><label>当前操作场景</label><span class="pill blue">护理站 · 早班</span></div><div><label>目标婴儿</label>${select('feed-target',S.babies.map(x=>[x.id,x.name+' · '+x.id+' / '+x.room]),b.id,'data-change="feedBaby"')}</div><span class="grow"></span><span class="tiny muted">支持扫码枪或手工输入</span></div>
  <div class="tri-layout">
  ${card('本班喂养队列',S.tasks.filter(t=>t.type==='喂养').map(t=>`<button class="queueitem ${t.subject===b.id?'active':''}" ${act('feed-baby',t.subject)}><span class="tiny blue">${t.time}</span><div class="grow"><b>${h(subjectName(t.subject))}</b><p class="tiny muted">${h(subjectMother(t.subject)?.room)} · ${t.subject}</p></div>${pill(t.state)}</button>`).join('')+`<div class="divider"></div><h4>本次目标</h4><div class="row mt12">${av(b.name,'lg')}<div><h3>${h(b.name)}</h3><p class="tiny muted">${b.id} · ${m.name}</p></div></div><p class="small mt12">在所状态：${pill(b.state)}</p>`,'','queue-side')}
- ${card('奶瓶 / 母乳容器核验',`<div class="scansteps"><div class="${U.scanStep>=1?'on':''}"><b>1</b>宝宝与容器</div><i></i><div class="${U.scanStep>=2?'on':''}"><b>2</b>独立复核</div><i></i><div class="${U.scanStep>=3?'on':''}"><b>3</b>实际记录</div></div>
- <div class="scanbox">${!milk&&!U.scanError?`<div class="scanhero"><div class="bottle"><i></i></div><div><h3>先核对宝宝，再扫描容器</h3><p class="small muted mt8">扫描或手工输入条码</p></div></div>`:`<div class="row mb16">${ico(ok?'checkcircle':'alert',ok?'green':'red')}<div><h3>${ok?'核验通过':'核验未通过'}</h3><p class="small muted">${ok?'请填写实际喂养。':h(U.scanError)}</p></div></div>`}
- <div class="field"><label>宝宝身份码</label>${input('baby-code',U.scannedBaby||'','text',`placeholder="BABY-${h(b.id)}" autocomplete="off"`)}</div><div class="field mt12"><label>容器条码</label><div class="scanentry">${input('container-code',U.scanInput||'','text','placeholder="扫描或录入容器编号" autocomplete="off"')}${btn('开始核验','scan-verify','','primary','scan')}</div></div>
- ${ok?`<div class="scanresult">${kv([['容器',milk.id+' · '+milk.source],['源母亲',mtr(milk.mother).name],['适用婴儿',subjectName(milk.baby)+' / '+milk.baby],['容器余量',milk.volume+' mL'],['储存设备',milk.device+' / '+find('devices',milk.device)?.state],['使用时限',milk.deadline.replace('T',' ')]])}</div><div class="formgrid mt20">${field('本次执行人',select('feed-actor',careStaff(),b.custody))}${field('独立复核人',select('feed-reviewer',[['','请选择另一位复核人'],...careStaff()],''))}${field('实际喂养量（mL）',input('feed-amount',Math.min(60,milk.volume),'number','min="1" step="1"'))}${field('剩余部分处理',select('feed-left',['余量弃置','全部使用'],milk.volume>60?'余量弃置':'全部使用'))}${field('实际观察 / 反馈',area('feed-note','','填写现场观察'),true)}</div>${check('feed-checked','已核对婴儿身份、容器、来源及有效状态。')}${check('feed-performed','已完成本次喂养，数量与余量处理为现场记录。')}<div class="mt16">${btn('确认实际喂养并记录','feed-save',milk.id,'primary full','checkcircle')}</div>`:U.scanError?`<div class="scanresult bad">${ico('alert')} ${h(U.scanError)}</div>`:''}
+ ${card('奶瓶核验',`<div class="scansteps"><div class="${U.scanStep>=1?'on':''}"><b>1</b>宝宝与奶瓶</div><i></i><div class="${U.scanStep>=2?'on':''}"><b>2</b>独立复核</div><i></i><div class="${U.scanStep>=3?'on':''}"><b>3</b>实际记录</div></div>
+ <div class="scanbox">${!milk&&!U.scanError?`<div class="scanhero"><div class="bottle"><i></i></div><div><h3>先核对宝宝，再扫描奶瓶</h3><p class="small muted mt8">扫描或手工输入条码</p></div></div>`:`<div class="row mb16">${ico(ok?'checkcircle':'alert',ok?'green':'red')}<div><h3>${ok?'核验通过':'核验未通过'}</h3><p class="small muted">${ok?'请填写实际喂养。':h(U.scanError)}</p></div></div>`}
+ <div class="field"><label>宝宝身份码</label>${input('baby-code',U.scannedBaby||'','text',`placeholder="BABY-${h(b.id)}" autocomplete="off"`)}</div><div class="field mt12"><label>奶瓶条码</label><div class="scanentry">${input('container-code',U.scanInput||'','text','placeholder="扫描或录入奶瓶编号" autocomplete="off"')}${btn('开始核验','scan-verify','','primary','scan')}</div></div>
+ ${ok?`<div class="scanresult">${kv([['奶瓶',milk.id+' · '+milk.source],['源母亲',mtr(milk.mother).name],['适用婴儿',subjectName(milk.baby)+' / '+milk.baby],['奶瓶余量',milk.volume+' mL'],['储存设备',milk.device+' / '+find('devices',milk.device)?.state],['使用时限',milk.deadline.replace('T',' ')]])}</div><div class="formgrid mt20">${field('本次执行人',select('feed-actor',careStaff(),b.custody))}${field('独立复核人',select('feed-reviewer',[['','请选择另一位复核人'],...careStaff()],''))}${field('实际喂养量（mL）',input('feed-amount',Math.min(60,milk.volume),'number','min="1" step="1"'))}${field('剩余部分处理',select('feed-left',['余量弃置','全部使用'],milk.volume>60?'余量弃置':'全部使用'))}${field('实际观察 / 反馈',area('feed-note','','填写现场观察'),true)}</div>${check('feed-checked','已核对婴儿身份、奶瓶、来源及有效状态。')}${check('feed-performed','已完成本次喂养，数量与余量处理为现场记录。')}<div class="mt16">${btn('确认实际喂养并记录','feed-save',milk.id,'primary full','checkcircle')}</div>`:U.scanError?`<div class="scanresult bad">${ico('alert')} ${h(U.scanError)}</div>`:''}
  `,'','scan-main')}
  <aside class="col third">${card('护理快捷操作',`<div class="grid2">${[['观察记录','record','clipboard'],['托管接还','handover-baby','handover'],['异常上报','event-new','alert'],['宝宝档案','open-resident','baby']].map(([t,a,i])=>`<button class="quick" style="flex-direction:column" ${act(a,a==='open-resident'?m.id:b.id)}>${ico(i)}${t}</button>`).join('')}</div>`)}
 
@@ -512,10 +512,10 @@ function feedingView(){
 }
 function milkView(){
  const list=S.milk.filter(m=>U.milkState==='全部'||m.state===U.milkState);
- return `<div class="kpis four">${kpi('当前可用容器',S.milk.filter(m=>m.state==='可用').length,'个','可执行喂养','bottle','','milk')}${kpi('隔离待核实',S.milk.filter(m=>m.state==='已隔离').length,'个','待复核后放行','shield','orange','milk')}${kpi('已使用容器',S.milk.filter(m=>m.state==='已使用').length,'个','不可重复使用','checkcircle','green','milk')}${kpi('冷链待处理',S.devices.filter(d=>d.type==='冷链'&&d.state!=='在线').length,'台','显示最后数据时间','temp','purple','equipment')}</div>
+ return `<div class="kpis four">${kpi('当前可用奶瓶',S.milk.filter(m=>m.state==='可用').length,'瓶','可执行喂养','bottle','','milk')}${kpi('隔离待核实',S.milk.filter(m=>m.state==='已隔离').length,'瓶','待复核后放行','shield','orange','milk')}${kpi('已使用奶瓶',S.milk.filter(m=>m.state==='已使用').length,'瓶','不可重复使用','checkcircle','green','milk')}${kpi('冷链待处理',S.devices.filter(d=>d.type==='冷链'&&d.state!=='在线').length,'台','显示最后数据时间','temp','purple','equipment')}</div>
  <div class="filters">${seg(['全部','可用','已隔离','已使用','使用窗已过','已弃置'],U.milkState,'milk-state')}<span class="grow"></span>${btn('查看冷链设备','go','equipment','','activity')}</div>
- <div class="wide-layout"><section class="card"><div class="cardhead"><h2>一容器一码 · 奶源台账</h2><span class="small muted">${list.length} 个容器</span></div>${table(['容器编号','适用婴儿','奶源 / 母亲','登记量','存放设备','状态','操作'],list.map(m=>tr([`<b class="mono">${m.id}</b><span class="sub">${m.received} 接收</span>`,`${h(subjectName(m.baby))}<span class="sub">${m.baby} · ${bb(m.baby).room}</span>`,`${m.source}<span class="sub">${h(mtr(m.mother).name)}</span>`,m.volume+' mL',`${m.device}<span class="sub">${h(find('devices',m.device)?.state)}</span>`,pill(m.state),lnk('追溯 / 处理','milk-detail',m.id)])))}</section>
- <aside class="col detail-side">${card('冷链关联状态',S.devices.filter(d=>d.type==='冷链').map(d=>`<div class="softbox mt8"><div class="between"><b class="small">${d.id} · ${d.name}</b>${pill(d.state)}</div><p class="small mt8">${h(d.reading)}</p><p class="tiny muted">最后接收 ${d.last} · ${h(d.quality)}</p><div class="mt12">${lnk('查看设备与受影响容器 →','device',d.id)}</div></div>`).join(''))}
+ <div class="wide-layout"><section class="card"><div class="cardhead"><h2>一瓶一码 · 奶源台账</h2><span class="small muted">${list.length} 个奶瓶</span></div>${table(['奶瓶编号','适用婴儿','奶源 / 母亲','登记量','存放设备','状态','操作'],list.map(m=>tr([`<b class="mono">${m.id}</b><span class="sub">${m.received} 接收</span>`,`${h(subjectName(m.baby))}<span class="sub">${m.baby} · ${bb(m.baby).room}</span>`,`${m.source}<span class="sub">${h(mtr(m.mother).name)}</span>`,m.volume+' mL',`${m.device}<span class="sub">${h(find('devices',m.device)?.state)}</span>`,pill(m.state),lnk('追溯 / 处理','milk-detail',m.id)])))}</section>
+ <aside class="col detail-side">${card('冷链关联状态',S.devices.filter(d=>d.type==='冷链').map(d=>`<div class="softbox mt8"><div class="between"><b class="small">${d.id} · ${d.name}</b>${pill(d.state)}</div><p class="small mt8">${h(d.reading)}</p><p class="tiny muted">最后接收 ${d.last} · ${h(d.quality)}</p><div class="mt12">${lnk('查看设备与受影响奶瓶 →','device',d.id)}</div></div>`).join(''))}
 
  </aside></div>`;
 }
@@ -604,7 +604,7 @@ function analysisView(){
  ${U.analysisView==='履约经营'?`<div class="grid2">${card('合同履约金额结构',`<div class="donutbox" style="min-height:240px">${ring([[Math.round(performed/1000),'#6a9eff'],[Math.round((signed-performed)/1000),'#bfdbff']],Math.round(signed/1000),'千元 · 分摊结构',175)}<div class="grow"><div class="legendrow"><i class="dot blue"></i>已履约分摊<b>${money(performed)}</b></div><div class="legendrow"><i class="dot" style="color:#bfdbff"></i>未履约分摊<b>${money(signed-performed)}</b></div><div class="divider"></div></div></div>`)}
  ${card('服务类型成本',`<div class="col mt12">${['医院','会所','住家'].map((s,i)=>{const amount=S.segments.filter(x=>x.scene===s&&x.state==='已核定').reduce((a,x)=>a+x.days*(x.rate+x.subsidy),0),total=S.segments.filter(x=>x.state==='已核定').reduce((a,x)=>a+x.days*(x.rate+x.subsidy),0);return `<div><div class="between small"><span>${s}已核定人员成本</span><b>${money(amount)}</b></div><div class="progress mt8"><span style="width:${amount/Math.max(1,total)*100}%"></span></div></div>`}).join('')}<p class="tiny muted">按已核定服务段汇总。</p></div>`)}
  </div>${card('合同级经营明细',table(['合同 / 客户','套餐','签约额','已收款','已履约分摊','已记录成本','状态','操作'],S.contracts.map(c=>tr([`${c.id}<span class="sub">${c.customer}</span>`,h(c.package),money(c.amount),money(c.paid),money(contractValues(c).performed),money(c.cost),pill(c.state),lnk('履约详情','open-contract',c.id)]))),'','mt20')}`:
- `<div class="grid2">${card('任务完成与未结事项',`<div class="donutbox">${ring([[S.tasks.filter(t=>t.state==='已完成').length,'#56a2ff'],[S.tasks.filter(t=>t.state!=='已完成').length,'#d6e7ff']],S.tasks.length,'当前班次任务',170)}<div class="grow">${['待执行','进行中','已完成'].map(s=>`<div class="legendrow">${pill(s)}<b>${S.tasks.filter(t=>t.state===s).length}</b></div>`).join('')}</div></div>`)}${card('质量与追溯指标',`${kv([['未闭环事件',S.events.filter(e=>e.state!=='已闭环').length+' 项'],['待接收交接',S.handovers.filter(v=>v.state==='待接收').length+' 单'],['隔离容器',S.milk.filter(m=>m.state==='已隔离').length+' 个'],['待复核房务',S.jobs.filter(j=>j.state==='待验收').length+' 间'],['待同步草稿',S.drafts.length+' 条']])}<div class="mt20">${btn('进入异常协同','go','quality','primary full','shield')}</div>`)}
+ `<div class="grid2">${card('任务完成与未结事项',`<div class="donutbox">${ring([[S.tasks.filter(t=>t.state==='已完成').length,'#56a2ff'],[S.tasks.filter(t=>t.state!=='已完成').length,'#d6e7ff']],S.tasks.length,'当前班次任务',170)}<div class="grow">${['待执行','进行中','已完成'].map(s=>`<div class="legendrow">${pill(s)}<b>${S.tasks.filter(t=>t.state===s).length}</b></div>`).join('')}</div></div>`)}${card('质量与追溯指标',`${kv([['未闭环事件',S.events.filter(e=>e.state!=='已闭环').length+' 项'],['待接收交接',S.handovers.filter(v=>v.state==='待接收').length+' 单'],['隔离奶瓶',S.milk.filter(m=>m.state==='已隔离').length+' 瓶'],['待复核房务',S.jobs.filter(j=>j.state==='待验收').length+' 间'],['待同步草稿',S.drafts.length+' 条']])}<div class="mt20">${btn('进入异常协同','go','quality','primary full','shield')}</div>`)}
  </div>`}`;
 }
 function systemView(){
@@ -667,7 +667,7 @@ function clearScan(){U.scan=null;U.scanInput='';U.scannedBaby='';U.scanError='';
 function scanSample(kind){
  const b=bb(U.feedBaby),normal=S.milk.find(x=>x.baby===b.id&&x.state==='可用'),other=S.milk.find(x=>x.mother===b.mother&&x.baby!==b.id&&x.state==='可用')||S.milk.find(x=>x.baby!==b.id&&x.state==='可用');
  const x=kind==='normal'?normal:kind==='wrong'?other:kind==='used'?S.milk.find(x=>x.state==='已使用'):kind==='expired'?S.milk.find(x=>x.state==='使用窗已过'):S.milk.find(x=>x.state==='已隔离');
- if(!x)return toast('当前对象没有可用容器，可切换到林小满或恢复初始数据。',true);
+ if(!x)return toast('当前对象没有可用奶瓶，可切换到林小满或恢复初始数据。',true);
  U.scannedBaby='BABY-'+b.id;U.scanInput=x.id;U.scan=null;U.scanError='';U.scanStep=1;render();$('#container-code')?.focus();toast('已填入条码，请点击“开始核验”。');
 }
 function scanVerify(){
@@ -676,29 +676,29 @@ function scanVerify(){
  if(U.offline)error='断网时不能在线确认关键核验。请按现场应急预案核实。';
  else if(b.state!=='在所')error='目标婴儿尚未在所，不能记录在所喂养。';
  else if(U.scannedBaby!=='BABY-'+b.id)error='婴儿身份码不匹配。';
- else if(!x)error='没有找到此容器，不能将未知条码视为正常奶源。';
- else if(x.baby!==b.id)error=x.mother===b.mother?'该容器适用另一名宝宝。':'奶源与目标婴儿不匹配。';
- else if(x.state!=='可用')error='容器当前为“'+x.state+'”，不可按正常可用核验。';
- else if(dateNum(x.deadline)<now())error='已超过该容器记录的使用时限，需要按SOP处理。';
- else if(find('devices',x.device)?.state!=='在线')error='储存设备状态无法确认，容器须先由负责人核实。';
- U.scan=x?.id||null;U.scanError=error;U.scanStep=error?1:2;U.scanCustody=b.custody;render();if(error)toast(error,true);else toast('身份和容器校验通过，请完成独立复核和实际记录。');
+ else if(!x)error='没有找到此奶瓶，不能将未知条码视为正常奶源。';
+ else if(x.baby!==b.id)error=x.mother===b.mother?'该奶瓶适用另一名宝宝。':'奶源与目标婴儿不匹配。';
+ else if(x.state!=='可用')error='奶瓶当前为“'+x.state+'”，不可按正常可用核验。';
+ else if(dateNum(x.deadline)<now())error='已超过该奶瓶记录的使用时限，需要按SOP处理。';
+ else if(find('devices',x.device)?.state!=='在线')error='储存设备状态无法确认，奶瓶须先由负责人核实。';
+ U.scan=x?.id||null;U.scanError=error;U.scanStep=error?1:2;U.scanCustody=b.custody;render();if(error)toast(error,true);else toast('身份和奶瓶校验通过，请完成独立复核和实际记录。');
 }
 function feedSave(id){
  if(!online())return;
  const x=find('milk',id),b=bb(U.feedBaby),actor=val('feed-actor'),reviewer=val('feed-reviewer'),amount=Number(val('feed-amount')),text=val('feed-note');
  const err=t=>{toast(t,true);let el=$('#feed-note');el?.focus();};
- if(!x||x.state!=='可用'||x.baby!==b.id||b.state!=='在所'||U.scanError)return err('对象或容器状态已变化，请重新核验。');
+ if(!x||x.state!=='可用'||x.baby!==b.id||b.state!=='在所'||U.scanError)return err('对象或奶瓶状态已变化，请重新核验。');
  if(b.custody!==U.scanCustody)return err('照护责任已发生变化，请重新核验当前责任链。');
  if(find('devices',x.device)?.state!=='在线'||dateNum(x.deadline)<now())return err('设备或时效条件已变化，请重新核验。');
  if(!actor||!reviewer||actor===reviewer||!emp(actor)?.valid||!emp(reviewer)?.valid)return err('执行人与复核人必须是两位不同的有效护理人员。');
- if(!Number.isFinite(amount)||!Number.isInteger(amount)||amount<=0||amount>x.volume)return err('实际喂养量必须为正整数，且不能超过容器登记量。');
- if(val('feed-left')==='全部使用'&&amount!==x.volume)return err('选择“全部使用”时，实际数量须与容器量一致；否则应明确余量处理。');
+ if(!Number.isFinite(amount)||!Number.isInteger(amount)||amount<=0||amount>x.volume)return err('实际喂养量必须为正整数，且不能超过奶瓶登记量。');
+ if(val('feed-left')==='全部使用'&&amount!==x.volume)return err('选择“全部使用”时，实际数量须与奶瓶量一致；否则应明确余量处理。');
  if(text.length<5||!checked('feed-checked')||!checked('feed-performed'))return err('请填写实际反馈，并分别确认现场复核与实际执行。');
  x.state='已使用';x.used=amount;x.discarded=x.volume-amount;x.actor=actor;x.reviewer=reviewer;x.usedAt=CLOCK;
  b.lastFeed=CLOCK;b.lastAmount=amount;
- const r={id:inc('FEED'),subject:b.id,type:'喂养',note:`容器 ${x.id}；实际 ${amount}mL；余量弃置 ${x.discarded}mL。${text}`,actor,time:CLOCK,source:`独立复核 ${ename(reviewer)} / ${x.id}`};S.records.unshift(r);
+ const r={id:inc('FEED'),subject:b.id,type:'喂养',note:`奶瓶 ${x.id}；实际 ${amount}mL；余量弃置 ${x.discarded}mL。${text}`,actor,time:CLOCK,source:`独立复核 ${ename(reviewer)} / ${x.id}`};S.records.unshift(r);
  const t=S.tasks.find(t=>t.subject===b.id&&t.type==='喂养'&&t.state!=='已完成');if(t){t.state='已完成';t.note=r.note;t.actual=CLOCK;t.owner=actor;}
- audit('完成一次实际喂养',b.name+' / '+x.id+' / '+amount+'mL','feeding','喂养',r.id);clearScan();U.scanStep=3;save();render();toast('喂养、容器状态、宝宝记录与待办任务已同步更新。');
+ audit('完成一次实际喂养',b.name+' / '+x.id+' / '+amount+'mL','feeding','喂养',r.id);clearScan();U.scanStep=3;save();render();toast('喂养、奶瓶状态、宝宝记录与待办任务已同步更新。');
 }
 function handoverNew(babyid=''){
  const b=bb(babyid)||bb(U.baby)||S.babies[0];
@@ -735,7 +735,7 @@ function handoverAccept(id){
  audit('完成交接',b.name+' / '+ename(v.from)+' → '+ename(v.to),'handover','交接',v.id);commit('已更新责任与位置。');
 }
 function shiftPackage(){
- modal('生成班组交班包',`<div class="grid3"><div class="softbox"><h2>${S.tasks.filter(t=>t.state!=='已完成').length}</h2><span class="small muted">未完成任务</span></div><div class="softbox"><h2>${S.events.filter(e=>e.state!=='已闭环').length}</h2><span class="small muted">未结事件</span></div><div class="softbox"><h2>${S.milk.filter(m=>m.state==='已隔离').length}</h2><span class="small muted">隔离容器</span></div></div><div class="formgrid mt20">${field('交班负责人',select('shift-from',careStaff(),'E002'))}${field('接班负责人',select('shift-to',careStaff(),'E003'))}${field('重点事项',area('shift-note','重点核对托管接收、冷链容器以及下一班待办，未结事项继续跟进。'),true)}</div>${check('shift-check','接班负责人已逐项核对包内事项并确认接续跟进。')}`,btn('取消','close')+btn('确认签收交班包','shift-save','','primary','clipboard'));
+ modal('生成班组交班包',`<div class="grid3"><div class="softbox"><h2>${S.tasks.filter(t=>t.state!=='已完成').length}</h2><span class="small muted">未完成任务</span></div><div class="softbox"><h2>${S.events.filter(e=>e.state!=='已闭环').length}</h2><span class="small muted">未结事件</span></div><div class="softbox"><h2>${S.milk.filter(m=>m.state==='已隔离').length}</h2><span class="small muted">隔离奶瓶</span></div></div><div class="formgrid mt20">${field('交班负责人',select('shift-from',careStaff(),'E002'))}${field('接班负责人',select('shift-to',careStaff(),'E003'))}${field('重点事项',area('shift-note','重点核对托管接收、冷链奶瓶以及下一班待办，未结事项继续跟进。'),true)}</div>${check('shift-check','接班负责人已逐项核对包内事项并确认接续跟进。')}`,btn('取消','close')+btn('确认签收交班包','shift-save','','primary','clipboard'));
 }
 function bookingModal(id='',room=''){
  const b=find('bookings',id);U.editBooking=id;
@@ -812,14 +812,14 @@ function shiftEdit(key){
  modal('调整班次计划',`${kv([['人员',s.name],['日期',dayAdd(DEMO_DAY,Number(index))],['现有班次',s.schedule[index]]])}<div class="formgrid mt20">${field('新班次',select('roster-shift',['早班','中班','夜班','休息'],s.schedule[index]))}${field('调整原因',input('roster-reason','','text','placeholder="填写换班或休息原因"'))}</div>${note('今天仍承担照护责任的人员，不能通过改为休息跳过责任交接。','warn')}`,btn('取消','close')+btn('保存班表调整','shift-edit-save','','primary','calendar'));
 }
 function milkNew(){
- modal('接收奶源与容器登记',`<div class="formgrid">${field('容器编码',input('milk-code','MLK-'+String(S.seq+1).padStart(3,'0')))}${field('适用宝宝',select('milk-baby',S.babies.filter(b=>b.state==='在所').map(b=>[b.id,b.name+' / '+b.id]),U.feedBaby))}${field('奶源类别',select('milk-source',['母乳','配方奶'],'母乳'))}${field('登记量（mL）',input('milk-volume',90,'number','min="1" max="1000"'))}${field('储存设备',select('milk-device',S.devices.filter(d=>d.type==='冷链').map(d=>[d.id,d.id+' / '+d.state]),'FR-02'))}${field('按已审核SOP填写使用截止',input('milk-deadline','2026-09-16T12:00','datetime-local'))}${field('源批次 / 配方批次',input('milk-batch','SRC-260916-NEW'))}${field('接收核验人',select('milk-actor',careStaff(),'E001'))}</div>${check('milk-sop','已核对独立宝宝、来源、批次和适用SOP；截止时间按本容器适用 SOP 填写。')}`,btn('取消','close')+btn('登记容器','milk-create','','primary','bottle'),'设备异常时新容器只能进入隔离待核实状态。',true);
+ modal('接收奶源与奶瓶登记',`<div class="formgrid">${field('奶瓶编码',input('milk-code','MLK-'+String(S.seq+1).padStart(3,'0')))}${field('适用宝宝',select('milk-baby',S.babies.filter(b=>b.state==='在所').map(b=>[b.id,b.name+' / '+b.id]),U.feedBaby))}${field('奶源类别',select('milk-source',['母乳','配方奶'],'母乳'))}${field('登记量（mL）',input('milk-volume',90,'number','min="1" max="1000"'))}${field('储存设备',select('milk-device',S.devices.filter(d=>d.type==='冷链').map(d=>[d.id,d.id+' / '+d.state]),'FR-02'))}${field('按已审核SOP填写使用截止',input('milk-deadline','2026-09-16T12:00','datetime-local'))}${field('源批次 / 配方批次',input('milk-batch','SRC-260916-NEW'))}${field('接收核验人',select('milk-actor',careStaff(),'E001'))}</div>${check('milk-sop','已核对独立宝宝、来源、批次和适用SOP；截止时间按本奶瓶适用 SOP 填写。')}`,btn('取消','close')+btn('登记奶瓶','milk-create','','primary','bottle'),'设备异常时新奶瓶只能进入隔离待核实状态。',true);
 }
 function milkDetail(id){
  const x=find('milk',id),b=bb(x.baby),d=find('devices',x.device);
- drawer('奶源追溯 · '+id,`<div class="row"><div class="bottle" style="transform:scale(.6);margin:0 2px;height:90px"><i></i></div><div class="grow"><h2>${x.id}</h2><p class="small muted">${x.source} · ${x.volume}mL</p>${pill(x.state)}</div></div><div class="divider"></div>${kv([['源母亲',mtr(x.mother).name],['适用婴儿',b.name+' / '+b.id],['批次',x.batch],['登记接收时间',x.received],['设备 / 状态',d.id+' / '+d.state],['记录使用截止',x.deadline.replace('T',' ')],['实际使用',x.used?x.used+'mL / '+x.usedAt:'尚未使用'],['余量弃置',x.discarded===undefined?'尚未记录':x.discarded+'mL']])}<div class="divider"></div><h3 class="mb16">已知流转记录</h3><div class="timeline"><div class="timeitem"><time>${x.received}</time><h4>接收并登记</h4><p>奶源 / 适用宝宝 / 批次已关联</p></div><div class="timeitem"><h4>存放 ${x.device}</h4><p>设备状态：${d.state}，最近数据 ${d.last}</p></div><div class="timeitem"><h4>当前 ${x.state}</h4><p>${h(x.resolution||(x.state==='已隔离'?'需由负责人核实来源与储存链。':'以当前容器记录为准。'))}</p></div></div>`,(x.state==='已隔离'?btn('独立复核处置','milk-review',x.id,'primary','shield'):x.state==='可用'?btn('进入喂养核验','milk-use',x.id,'primary','scan'):'')+(['使用窗已过','可用'].includes(x.state)?btn('登记弃置','milk-discard',x.id,'danger','close'):'')+btn('关闭','close'));
+ drawer('奶源追溯 · '+id,`<div class="row"><div class="bottle" style="transform:scale(.6);margin:0 2px;height:90px"><i></i></div><div class="grow"><h2>${x.id}</h2><p class="small muted">${x.source} · ${x.volume}mL</p>${pill(x.state)}</div></div><div class="divider"></div>${kv([['源母亲',mtr(x.mother).name],['适用婴儿',b.name+' / '+b.id],['批次',x.batch],['登记接收时间',x.received],['设备 / 状态',d.id+' / '+d.state],['记录使用截止',x.deadline.replace('T',' ')],['实际使用',x.used?x.used+'mL / '+x.usedAt:'尚未使用'],['余量弃置',x.discarded===undefined?'尚未记录':x.discarded+'mL']])}<div class="divider"></div><h3 class="mb16">已知流转记录</h3><div class="timeline"><div class="timeitem"><time>${x.received}</time><h4>接收并登记</h4><p>奶源 / 适用宝宝 / 批次已关联</p></div><div class="timeitem"><h4>存放 ${x.device}</h4><p>设备状态：${d.state}，最近数据 ${d.last}</p></div><div class="timeitem"><h4>当前 ${x.state}</h4><p>${h(x.resolution||(x.state==='已隔离'?'需由负责人核实来源与储存链。':'以当前奶瓶记录为准。'))}</p></div></div>`,(x.state==='已隔离'?btn('独立复核处置','milk-review',x.id,'primary','shield'):x.state==='可用'?btn('进入喂养核验','milk-use',x.id,'primary','scan'):'')+(['使用窗已过','可用'].includes(x.state)?btn('登记弃置','milk-discard',x.id,'danger','close'):'')+btn('关闭','close'));
 }
 function milkReview(id){
- const x=find('milk',id);modal('隔离容器独立复核',`${note('设备恢复后，容器仍须单独核实来源与储存链；无法确认应按 SOP 弃置。','warn')}${kv([['容器',id],['设备状态',find('devices',x.device).state],['宝宝',subjectName(x.baby)]])}<div class="formgrid mt20">${field('处置选择',select('milk-resolution',['按SOP弃置','有依据解除隔离'],'按SOP弃置'))}${field('处置人员',select('milk-handler',careStaff(),'E001'))}${field('独立复核人',select('milk-reviewer',careStaff(),'E002'))}${field('处置依据与证据',area('milk-evidence'),true)}</div>${check('milk-review-check','已经按适用SOP完成独立复核，留有相应来源与现场证据。')}`,btn('取消','close')+btn('确认处置','milk-review-save',id,'primary','shield'));
+ const x=find('milk',id);modal('隔离奶瓶独立复核',`${note('设备恢复后，奶瓶仍须单独核实来源与储存链；无法确认应按 SOP 弃置。','warn')}${kv([['奶瓶',id],['设备状态',find('devices',x.device).state],['宝宝',subjectName(x.baby)]])}<div class="formgrid mt20">${field('处置选择',select('milk-resolution',['按SOP弃置','有依据解除隔离'],'按SOP弃置'))}${field('处置人员',select('milk-handler',careStaff(),'E001'))}${field('独立复核人',select('milk-reviewer',careStaff(),'E002'))}${field('处置依据与证据',area('milk-evidence'),true)}</div>${check('milk-review-check','已经按适用SOP完成独立复核，留有相应来源与现场证据。')}`,btn('取消','close')+btn('确认处置','milk-review-save',id,'primary','shield'));
 }
 
 
@@ -965,13 +965,13 @@ function inspectionModal(){
 }
 function deviceDetail(id){
  const d=find('devices',id);if(!d)return toast('未找到关联设备。',true);
- drawer('设备与关联影响',`<div class="row"><span class="listico ${d.state==='在线'?'blue':'orange'}">${ico('activity')}</span><div><h2>${h(d.name)}</h2><p class="small muted">${d.id} · ${h(d.location)}</p></div></div><div class="divider"></div>${kv([['状态',pill(d.state),true],['当前显示',d.reading],['最后接收',d.last],['数据质量',d.quality],['责任范围',d.type==='冷链'?'设备恢复与奶源处置分开':'设备维护与现场复核']])}<div class="divider"></div><h3 class="mb16">关联影响对象</h3>${d.impact.length?d.impact.map(id=>`<div class="resource-chip mt8"><b class="mono">${id}</b><span class="grow">${find('milk',id)?pill(find('milk',id).state):find('rooms',id)?pill(find('rooms',id).state):''}</span>${lnk('查看',find('milk',id)?'milk-detail':'house-room',id)}</div>`).join(''):'<p class="small muted">当前没有待处理影响对象</p>'}<div class="mt20">${note('设备恢复后，受影响容器仍须按 SOP 独立处置，不会自动解除隔离。')}</div>`,(d.state!=='在线'?btn('登记复机与独立核验','device-restore',d.id,'primary','tool'):btn('登记设备故障','device-report-one',d.id,'danger','alert'))+btn('关闭','close'));
+ drawer('设备与关联影响',`<div class="row"><span class="listico ${d.state==='在线'?'blue':'orange'}">${ico('activity')}</span><div><h2>${h(d.name)}</h2><p class="small muted">${d.id} · ${h(d.location)}</p></div></div><div class="divider"></div>${kv([['状态',pill(d.state),true],['当前显示',d.reading],['最后接收',d.last],['数据质量',d.quality],['责任范围',d.type==='冷链'?'设备恢复与奶源处置分开':'设备维护与现场复核']])}<div class="divider"></div><h3 class="mb16">关联影响对象</h3>${d.impact.length?d.impact.map(id=>`<div class="resource-chip mt8"><b class="mono">${id}</b><span class="grow">${find('milk',id)?pill(find('milk',id).state):find('rooms',id)?pill(find('rooms',id).state):''}</span>${lnk('查看',find('milk',id)?'milk-detail':'house-room',id)}</div>`).join(''):'<p class="small muted">当前没有待处理影响对象</p>'}<div class="mt20">${note('设备恢复后，受影响奶瓶仍须按 SOP 独立处置，不会自动解除隔离。')}</div>`,(d.state!=='在线'?btn('登记复机与独立核验','device-restore',d.id,'primary','tool'):btn('登记设备故障','device-report-one',d.id,'danger','alert'))+btn('关闭','close'));
 }
 function deviceRestore(id){
- const d=find('devices',id);modal('设备复机独立核验',`${kv([['设备',d.name+' / '+id],['当前状态',d.state],['后续要求',d.type==='冷链'?'仍需逐容器处置':'仍需空间清洁与独立验收']])}<div class="formgrid mt20">${field('修复 / 检查人员',select('device-worker',staffOpts(),'E014'))}${field('独立复核人员',select('device-reviewer',staffOpts(),'E015'))}${field('恢复后现场读数 / 状态',input('device-reading',d.type==='冷链'?'4.0℃ · 人工复核':'功能恢复 · 人工复核'))}${field('检查依据与复机说明',area('device-evidence'))}</div>${check('device-done','已完成故障排查及独立复核，确认设备恢复；关联物品另行复核。')}`,btn('取消','close')+btn('确认设备恢复','device-restore-save',id,'primary','check'));
+ const d=find('devices',id);modal('设备复机独立核验',`${kv([['设备',d.name+' / '+id],['当前状态',d.state],['后续要求',d.type==='冷链'?'仍需逐瓶处置':'仍需空间清洁与独立验收']])}<div class="formgrid mt20">${field('修复 / 检查人员',select('device-worker',staffOpts(),'E014'))}${field('独立复核人员',select('device-reviewer',staffOpts(),'E015'))}${field('恢复后现场读数 / 状态',input('device-reading',d.type==='冷链'?'4.0℃ · 人工复核':'功能恢复 · 人工复核'))}${field('检查依据与复机说明',area('device-evidence'))}</div>${check('device-done','已完成故障排查及独立复核，确认设备恢复；关联物品另行复核。')}`,btn('取消','close')+btn('确认设备恢复','device-restore-save',id,'primary','check'));
 }
 function deviceReport(id=''){
- modal('设备故障登记',`<div class="formgrid">${field('设备',select('device-report-id',S.devices.map(d=>[d.id,d.name+' / '+d.id]),id||'FR-02'))}${field('故障状态',select('device-report-state',['数据中断','维修中'],'数据中断'))}${field('实际故障情况',area('device-report-note'),true)}</div>${note('冷链故障会同步隔离当前关联可用容器；安全现场响应另按预案执行。')}`,btn('取消','close')+btn('登记故障与影响','device-report-save','','primary','alert'));
+ modal('设备故障登记',`<div class="formgrid">${field('设备',select('device-report-id',S.devices.map(d=>[d.id,d.name+' / '+d.id]),id||'FR-02'))}${field('故障状态',select('device-report-state',['数据中断','维修中'],'数据中断'))}${field('实际故障情况',area('device-report-note'),true)}</div>${note('冷链故障会同步隔离当前关联可用奶瓶；安全现场响应另按预案执行。')}`,btn('取消','close')+btn('登记故障与影响','device-report-save','','primary','alert'));
 }
 
 
@@ -986,8 +986,8 @@ function boundary(id=U.page){return;
  residents:['母亲/婴儿独立档案、计划与普通照护记录','家庭关联、个案聚合、身份状态控制'],
  care:['计划、普通记录及异常申请','高频任务工作台、执行去重与事实同步'],
  handover:['托管申请、交班记录与审批','独立扫码、责任状态机与双向签收'],
- feeding:['奶源资料、喂养记录及异常','婴儿与容器精确匹配、独立复核、防重复使用'],
- milk:['来源、批次、隔离处置与复核','容器状态事务、设备影响追溯'],
+ feeding:['奶源资料、喂养记录及异常','婴儿与奶瓶精确匹配、独立复核、防重复使用'],
+ milk:['来源、批次、隔离处置与复核','奶瓶状态事务、设备影响追溯'],
  rooms:['房间、合同、入住及变更申请','排房日历、容量及并发冲突校验、换房事务'],
  dispatch:['资质、派单、排班、请假申请','跨场景时间冲突、资源占用、人员准备联动'],
  appointments:['服务目录、个体计划及预约申请','人员/场地/时间联合校验、预留与核销分离'],
@@ -1062,7 +1062,7 @@ function handleChange(key,value){
 function exportCurrent(kind){
  let headers=[],rows=[],name=kind;
  if(kind==='rooms'){headers=['订单','客户','房间','入住','离所','状态','护理准备'];rows=S.bookings.map(b=>[b.id,b.customer,b.room,b.start,b.end,b.state,b.ready?'已核实':'未确认']);}
- if(kind==='milk'){headers=['容器','母亲','宝宝','登记量mL','状态','设备','批次','截止'];rows=S.milk.map(x=>[x.id,mtr(x.mother).name,bb(x.baby).name,x.volume,x.state,x.device,x.batch,x.deadline]);}
+ if(kind==='milk'){headers=['奶瓶','母亲','宝宝','登记量mL','状态','设备','批次','截止'];rows=S.milk.map(x=>[x.id,mtr(x.mother).name,bb(x.baby).name,x.volume,x.state,x.device,x.batch,x.deadline]);}
  if(kind==='appointments'){headers=['预约','母亲','项目','日期','开始','结束','人员','场地','状态'];rows=S.appointments.map(a=>[a.id,mtr(a.mother).name,a.project,a.date,a.start,a.end,ename(a.staff),a.space,a.state]);}
  if(kind==='rights'){headers=['流水','合同','类型','源扣减','目标增加','状态','分摊价值','原因'];rows=S.rightsLog.map(x=>[x.id,x.contract,x.type,x.from,x.to,x.state,x.value,x.reason]);}
  if(kind==='payroll'){headers=['工资单','人员','状态','版本','基础服务费','补贴','奖励','核准扣缴','快照应付','已付'];rows=S.payroll.map(p=>{const v=payAmount(p);return[p.id,ename(p.staff),p.state,p.version,v.base,v.subsidy,v.bonus,v.deduction,v.total,p.paid||0];});}
@@ -1209,7 +1209,7 @@ function handleAction(a,id='',el=null){
   S.shiftPackages.unshift(p);audit('签收班组交班包',p.id+' / '+ename(from)+' → '+ename(to),'handover','交班',p.id);return commit('交班包已签收。');
  }
  case 'shift-detail':{
-  const p=find('shiftPackages',id);return drawer('班组交班包快照',kv([['包号',p.id],['交班',ename(p.from)],['接班',ename(p.to)],['时间',p.time],['未完成任务',p.tasks.join('、')||'无'],['未结事件',p.events.join('、')||'无'],['隔离容器',p.milk.join('、')||'无'],['重点事项',p.note]]));
+  const p=find('shiftPackages',id);return drawer('班组交班包快照',kv([['包号',p.id],['交班',ename(p.from)],['接班',ename(p.to)],['时间',p.time],['未完成任务',p.tasks.join('、')||'无'],['未结事件',p.events.join('、')||'无'],['隔离奶瓶',p.milk.join('、')||'无'],['重点事项',p.note]]));
  }
  case 'scan-help':return go('milk');
  case 'scan-sample':return scanSample(id);
@@ -1219,26 +1219,26 @@ function handleAction(a,id='',el=null){
  case 'milk-new':return milkNew();
  case 'milk-create':{
   if(!online())return;const code=val('milk-code').toUpperCase(),b=bb(val('milk-baby')),d=find('devices',val('milk-device')),volume=Number(val('milk-volume')),deadline=val('milk-deadline');
-  if(!/^[A-Z0-9-]{3,40}$/.test(code)||S.milk.some(x=>x.id===code))return fail('请输入唯一的英文字母/数字/短横线容器编码。');
+  if(!/^[A-Z0-9-]{3,40}$/.test(code)||S.milk.some(x=>x.id===code))return fail('请输入唯一的英文字母/数字/短横线奶瓶编码。');
   if(!b||b.state!=='在所'||!Number.isInteger(volume)||volume<=0||volume>1000)return fail('请核对在所婴儿与1–1000mL的整数登记量。');
-  if(!deadline||dateNum(deadline)<=now()||!val('milk-batch')||!checked('milk-sop'))return fail('请填写来源批次、未来的容器使用截止，并核对适用SOP。');
+  if(!deadline||dateNum(deadline)<=now()||!val('milk-batch')||!checked('milk-sop'))return fail('请填写来源批次、未来的奶瓶使用截止，并核对适用SOP。');
   S.milk.push({id:code,baby:b.id,mother:b.mother,volume,source:val('milk-source'),batch:val('milk-batch'),received:CLOCK,window:'按已审核个体SOP',deadline,device:d.id,state:d.state==='在线'?'可用':'已隔离',actor:val('milk-actor')});
-  if(d.state!=='在线'&&!d.impact.includes(code))d.impact.push(code);audit('登记新奶源容器',code+' / '+b.name+' / '+volume+'mL','milk','奶源',code);return commit(d.state==='在线'?'新容器已登记。':'设备异常，新容器已隔离待核实。');
+  if(d.state!=='在线'&&!d.impact.includes(code))d.impact.push(code);audit('登记新奶源奶瓶',code+' / '+b.name+' / '+volume+'mL','milk','奶源',code);return commit(d.state==='在线'?'新奶瓶已登记。':'设备异常，新奶瓶已隔离待核实。');
  }
  case 'milk-detail':return milkDetail(id);
  case 'milk-use':U.feedBaby=find('milk',id).baby;clearScan();go('feeding');U.scanInput=id;U.scannedBaby='BABY-'+U.feedBaby;return render();
  case 'milk-review':return milkReview(id);
  case 'milk-review-save':{
   if(!online())return;const x=find('milk',id),handler=val('milk-handler'),reviewer=val('milk-reviewer'),choice=val('milk-resolution');
-  if(x.state!=='已隔离')return fail('当前容器已经处理，不重复执行。');
+  if(x.state!=='已隔离')return fail('当前奶瓶已经处理，不重复执行。');
   if(handler===reviewer||val('milk-evidence').length<10||!checked('milk-review-check'))return fail('需要两位不同人员，并填写至少10个字的复核依据。');
   if(choice==='有依据解除隔离'&&(find('devices',x.device).state!=='在线'||dateNum(x.deadline)<=now()))return fail('设备未恢复或已超过登记时限，不能解除隔离。');
   x.state=choice==='按SOP弃置'?'已弃置':'可用';x.resolution=val('milk-evidence');x.handler=handler;x.reviewedBy=reviewer;if(x.state==='已弃置')x.discarded=x.volume;
-  audit('完成隔离容器独立处置',id+' / '+x.state,'milk','奶源',id);return commit('本容器处置已记录，其他容器未自动解除隔离。');
+  audit('完成隔离奶瓶独立处置',id+' / '+x.state,'milk','奶源',id);return commit('本奶瓶处置已记录，其他奶瓶未自动解除隔离。');
  }
- case 'milk-discard':return modal('登记容器弃置',`${kv([['容器',id],['当前状态',find('milk',id).state]])}${field('弃置原因',area('discard-reason'))}${check('discard-checked','已实际完成弃置并核对容器，操作不可恢复为可用。')}`,btn('取消','close')+btn('确认弃置','milk-discard-save',id,'danger'));
+ case 'milk-discard':return modal('登记奶瓶弃置',`${kv([['奶瓶',id],['当前状态',find('milk',id).state]])}${field('弃置原因',area('discard-reason'))}${check('discard-checked','已实际完成弃置并核对奶瓶，操作不可恢复为可用。')}`,btn('取消','close')+btn('确认弃置','milk-discard-save',id,'danger'));
  case 'milk-discard-save':{
-  if(!online())return;let x=find('milk',id);if(!['可用','使用窗已过'].includes(x.state))return fail('容器状态已改变。');if(val('discard-reason').length<5||!checked('discard-checked'))return fail('请核实弃置并填写原因。');x.state='已弃置';x.discarded=x.volume;x.resolution=val('discard-reason');audit('登记容器弃置',id,'milk','奶源',id);return commit('容器已弃置，不能再次使用。');
+  if(!online())return;let x=find('milk',id);if(!['可用','使用窗已过'].includes(x.state))return fail('奶瓶状态已改变。');if(val('discard-reason').length<5||!checked('discard-checked'))return fail('请核实弃置并填写原因。');x.state='已弃置';x.discarded=x.volume;x.resolution=val('discard-reason');audit('登记奶瓶弃置',id,'milk','奶源',id);return commit('奶瓶已弃置，不能再次使用。');
  }
  case 'appointment-new':return appointmentNew();
  case 'appointment-for':return appointmentNew(id);
@@ -1404,7 +1404,7 @@ function handleAction(a,id='',el=null){
   if(val('device-worker')===val('device-reviewer')||val('device-evidence').length<8||!val('device-reading')||!checked('device-done'))return fail('需要两位不同人员、现场读数及至少8字的复机依据。');
   d.state='在线';d.quality='人工复核';d.reading=val('device-reading');d.last=CLOCK;d.fixed=true;d.restoreEvidence=val('device-evidence');
   d.impact.forEach(key=>{let r=find('rooms',key);if(r&&r.state==='维修中'){r.state='待清洁';let j=S.jobs.find(j=>j.room===key&&j.state==='维修中');if(j)j.state='待开始';}});
-  audit('设备复机独立核验完成',id+' / 隔离物品未自动解锁','equipment','设备',id);return commit('设备恢复已记录，相关容器或房间仍需独立处置。');
+  audit('设备复机独立核验完成',id+' / 隔离物品未自动解锁','equipment','设备',id);return commit('设备恢复已记录，相关奶瓶或房间仍需独立处置。');
  }
  case 'device-report':return deviceReport();
  case 'device-report-one':return deviceReport(id);
