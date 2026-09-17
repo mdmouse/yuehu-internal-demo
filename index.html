@@ -214,13 +214,13 @@ function seed(){
  ['T015','M004','交接','核实母亲外出返回安排','14:00','待执行','E004']
  ].map(([id,subject,type,title,time,state,owner])=>({id,subject,type,title,time,state,owner,note:state==='已完成'?'已按实际情况记录，来源为现场人工登记。':'',actual:state==='已完成'?time:null}));
  const milk=[
- {id:'MLK-001',baby:'B001',mother:'M001',volume:90,state:'可用',device:'FR-02',received:'09:10',window:'有效 · 已审核SOP',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-01'},
- {id:'MLK-002',baby:'B002',mother:'M001',volume:80,state:'可用',device:'FR-02',received:'09:20',window:'有效 · 已审核SOP',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-02'},
+ {id:'MLK-001',baby:'B001',mother:'M001',volume:90,state:'可用',device:'FR-02',received:'09:10',window:'有效',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-01'},
+ {id:'MLK-002',baby:'B002',mother:'M001',volume:80,state:'可用',device:'FR-02',received:'09:20',window:'有效',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-02'},
  {id:'MLK-003',baby:'B003',mother:'M002',volume:80,state:'已使用',device:'FR-02',received:'07:45',window:'已结束',deadline:'2026-09-16T09:30',source:'母乳',batch:'SRC-260916-03'},
  {id:'MLK-004',baby:'B001',mother:'M001',volume:100,state:'已隔离',device:'FR-01',received:'08:35',window:'待复核',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-04'},
  {id:'MLK-005',baby:'B005',mother:'M004',volume:90,state:'已隔离',device:'FR-01',received:'08:45',window:'待复核',deadline:'2026-09-16T12:00',source:'母乳',batch:'SRC-260916-05'},
  {id:'MLK-006',baby:'B001',mother:'M001',volume:70,state:'使用窗已过',device:'FR-02',received:'06:00',window:'已过期 · 不可使用',deadline:'2026-09-16T10:00',source:'母乳',batch:'SRC-260916-06'},
- {id:'MLK-007',baby:'B005',mother:'M004',volume:90,state:'可用',device:'FR-02',received:'09:25',window:'有效 · 已审核SOP',deadline:'2026-09-16T12:00',source:'配方奶',batch:'FML-260916-01'}
+ {id:'MLK-007',baby:'B005',mother:'M004',volume:90,state:'可用',device:'FR-02',received:'09:25',window:'有效',deadline:'2026-09-16T12:00',source:'配方奶',batch:'FML-260916-01'}
  ];
  const devices=[
  {id:'FR-01',name:'母乳冷藏柜 01',type:'冷链',location:'3F 配奶间',state:'数据中断',last:'10:12',reading:'最后接收 3.8℃',quality:'过期',impact:['MLK-004','MLK-005'],fixed:false},
@@ -393,7 +393,7 @@ function dashboardView(){
  const roomParts=[['入住中','#5197fa'],['可入住','#5dc5a4'],['待清洁','#f2c46a'],['维修中','#ec95ae']];
  const rk=roomParts.map(([s,c])=>[S.rooms.filter(r=>r.state===s||s==='待清洁'&&r.state==='待验收').length,c]);
  const todos=S.tasks.filter(t=>t.state!=='已完成').slice(0,4);
- return `<div class="kpis">${kpi('在所母亲',inM,'位','含 '+S.mothers.filter(m=>m.state==='外出').length+' 位另行外出','heart','pink','residents')}${kpi('在所婴儿',inB,'位','每位宝宝独立照护记录','baby','','residents')}${kpi('可入住空房',free,'间','共 '+S.rooms.length+' 间 · 不含清洁中','home','green','rooms')}${kpi('待处理异常',open.length,'项','其中 '+open.filter(e=>e.level==='优先').length+' 项需优先跟进','alert','orange','quality')}${kpi('护理在岗人员',activeStaff,'人','早班在岗','calendar','purple','dispatch')}${allowed('payroll')?kpi('本批待结算',Math.round(payDue).toLocaleString(),'元','未支付 '+S.payroll.filter(p=>p.state!=='已支付').length+' 人','wallet','gold','payroll'):kpi('本班服务完成',Math.round(done/S.tasks.length*100),'%',done+' / '+S.tasks.length+' 项任务已记录','checkcircle','gold','care')}</div>
+ return `<div class="kpis">${kpi('在所母亲',inM,'位','含 '+S.mothers.filter(m=>m.state==='外出').length+' 位另行外出','heart','pink','residents')}${kpi('在所婴儿',inB,'位','当前在所','baby','','residents')}${kpi('可入住空房',free,'间','可立即安排入住','home','green','rooms')}${kpi('待处理异常',open.length,'项','其中 '+open.filter(e=>e.level==='优先').length+' 项需优先跟进','alert','orange','quality')}${kpi('护理在岗人员',activeStaff,'人','早班在岗','calendar','purple','dispatch')}${allowed('payroll')?kpi('本批待结算',Math.round(payDue).toLocaleString(),'元','未支付 '+S.payroll.filter(p=>p.state!=='已支付').length+' 人','wallet','gold','payroll'):kpi('本班服务完成',Math.round(done/S.tasks.length*100),'%',done+' / '+S.tasks.length+' 项任务已记录','checkcircle','gold','care')}</div>
  <div class="dashboard-top">
  ${card('房态总览',`<div class="donutbox">${ring(rk,S.rooms.length,'总房间',125)}<div class="grow">${roomParts.map(([s,c],i)=>`<div class="legendrow"><span class="dot" style="color:${c}"></span>${s}<b>${rk[i][0]}</b></div>`).join('')}</div></div><div class="divider"></div><div class="between small"><span class="muted">今日周转待办</span>${lnk(S.jobs.filter(j=>j.state!=='已验收').length+' 间待处理 →','go','house')}</div>`,lnk('排房日历 →','go','rooms'))}
  ${card(`今日护理待办 <span class="badge-count">${S.tasks.length-done}</span>`,`${todos.map(t=>`<div class="pending-item"><button class="tick" title="处理任务" ${act('task',t.id)}></button><div class="grow"><div class="between"><b class="small">${h(subjectMother(t.subject)?.room||'—')} · ${h(subjectName(t.subject))}</b><span class="tiny muted">${h(t.time)}</span></div><p class="listrow-sub">${h(t.title)}</p></div></div>`).join('')}<div class="divider"></div><div class="between small"><span class="muted">本班完成 ${done}/${S.tasks.length}</span><span class="blue">${Math.round(done/S.tasks.length*100)}%</span></div><div class="progress mt8"><span style="width:${done/S.tasks.length*100}%"></span></div>`,lnk('全部任务 →','go','care'))}
@@ -444,7 +444,7 @@ function residentView(){
  <section class="card mb16"><div class="case-banner"><div class="row case-main">${av(m.name,'xl pink')}<div><div class="row g8"><h2 style="font-size:22px">${h(m.name)}</h2>${pill(m.state)}${pill(m.room,'blue')}</div><p class="small muted">${m.age}岁 · ${h(m.id)}</p></div></div><div class="case-info"><label>产后天数</label><b>${days(m.delivery,DEMO_DAY)} 天</b></div><div class="case-info"><label>入住套餐</label><b>${h(m.package)}</b></div><div class="case-info"><label>预计离所</label><b>${h(m.endDate)}</b></div><div class="case-info"><label>责任团队</label><div class="row g8">${av(ename(m.owner),'sm green')}<b>${h(ename(m.owner))}</b></div></div></div>
  ${tabs(['总览','母亲照护','婴儿照护','喂养记录','服务计划','交接记录','异常跟进','费用权益'],U.caseTab,'case-tab')}</section>
  <div class="wide-layout"><div>${body}</div><aside class="col detail-side">${card('今日待办',todos.slice(0,5).map(t=>`<div class="pending-item"><button class="tick" ${act('task',t.id)} title="处理任务"></button><div class="grow"><b class="small">${h(t.time)} ${h(t.title)}</b><p class="listrow-sub">${h(ename(t.owner))}</p></div></div>`).join('')||empty('当前没有未完成任务','可以查看历史实际记录。'),pill(todos.length+'项','blue'))}
- ${card('合同与权益',`<div class="between"><div><p class="tiny muted">会所服务剩余</p><h2 style="font-size:26px;margin-top:6px">${contract.rights.stay+contract.rights.converted-contract.rights.usedStay}<small class="muted"> / ${contract.rights.stay+contract.rights.converted}天</small></h2></div>${ico('gift','orange')}</div><div class="progress mt12"><span style="width:${contract.rights.usedStay/contract.rights.stay*100}%"></span></div><div class="divider"></div>${kv([['次数权益可用',(contract.rights.appointments-contract.rights.usedAppointments-contract.rights.heldAppointments)+' 次'],['医院陪护可用',(contract.rights.hospital-contract.rights.usedHospital-contract.rights.converted)+' 天'],['赠送天数',contract.rights.gift+' 天 · 单独计成本']])}<div class="mt16">${btn('预约内部服务','appointment-for',m.id,'full primary','calendar')}</div>`,lnk('全部权益 →','open-contract',contract.id))}
+ ${card('合同与权益',`<div class="between"><div><p class="tiny muted">会所服务剩余</p><h2 style="font-size:26px;margin-top:6px">${contract.rights.stay+contract.rights.converted-contract.rights.usedStay}<small class="muted"> / ${contract.rights.stay+contract.rights.converted}天</small></h2></div>${ico('gift','orange')}</div><div class="progress mt12"><span style="width:${contract.rights.usedStay/contract.rights.stay*100}%"></span></div><div class="divider"></div>${kv([['次数权益可用',(contract.rights.appointments-contract.rights.usedAppointments-contract.rights.heldAppointments)+' 次'],['医院陪护可用',(contract.rights.hospital-contract.rights.usedHospital-contract.rights.converted)+' 天'],['赠送天数',contract.rights.gift+' 天']])}<div class="mt16">${btn('预约内部服务','appointment-for',m.id,'full primary','calendar')}</div>`,lnk('全部权益 →','open-contract',contract.id))}
  ${card('个案操作',`<div class="grid2">${btn('记录观察','record',m.id,'full','','')}${btn('调整排房','booking-mother',m.id,'full')}${btn('新增异常','event-new',m.id,'full')}${btn('导出摘要','resident-export',m.id,'full')}</div>`)}
  </aside></div>`;
 }
@@ -453,7 +453,7 @@ function roomsView(){
  const bk=find('bookings',U.selectedBooking)||S.bookings[0],c=find('contracts',bk.contract);
  const cols=Array.from({length:U.days},(_,i)=>dayAdd(U.date,i));
  return `<div class="filters">${filterSelect('楼层','roomFloor',['全部',[3,'3F 母婴照护区'],[4,'4F 居住区']],U.roomFloor)}${filterSelect('房型','roomType',['全部','温馨单间','尊享套房','家庭套房'],U.roomType)}${filterSelect('当前房态','roomState',['全部','入住中','可入住','待清洁','维修中'],U.roomState)}<div><label>日历起始</label>${input('calendar-date',U.date,'date','data-change="date"')}</div><span class="grow"></span>${btn('导出排房表','export-rooms','','','download')}</div>
- <div class="kpis four">${kpi('总房间',S.rooms.length,'间','房型与容量独立配置','bed','','rooms')}${kpi('当前可入住',S.rooms.filter(r=>r.state==='可入住').length,'间','不含维修和清洁房间','home','green','house')}${kpi('待确认排房',S.bookings.filter(b=>['草案','待审批','软占位'].includes(b.state)).length,'单','待确认','calendar','orange','rooms')}${kpi('周转待办',S.jobs.filter(j=>j.state!=='已验收').length,'间','清洁完成后独立验收','sparkles','purple','house')}</div>
+ <div class="kpis four">${kpi('总房间',S.rooms.length,'间','全部房间','bed','','rooms')}${kpi('当前可入住',S.rooms.filter(r=>r.state==='可入住').length,'间','可立即安排','home','green','house')}${kpi('待确认排房',S.bookings.filter(b=>['草案','待审批','软占位'].includes(b.state)).length,'单','待确认','calendar','orange','rooms')}${kpi('周转待办',S.jobs.filter(j=>j.state!=='已验收').length,'间','待清洁 / 待验收','sparkles','purple','house')}}</div>
  <div class="wide-layout"><section class="card"><div class="cardhead"><h2>房间排期视图</h2><div class="row g8">${btn('‹','calendar-prev','','sm')}${btn('今天','calendar-today','','sm')}${btn('›','calendar-next','','sm')}${seg([7,14,28],U.days,'calendar-days')}</div></div><div class="between" style="padding:0 19px 12px"><span class="small strong">${U.date} — ${dayAdd(U.date,U.days-1)}</span><span class="tiny muted">拖动可调整软占草案</span></div>
  <div class="gantt-scroll" style="max-height:660px"><div class="gantt" style="--days:${U.days};min-width:${U.days>14?1200:820}px"><div class="gantt-head"><div class="gantt-head-label">房间 / 房型</div><div class="gantt-head-days">${cols.map(d=>`<div class="day ${d===DEMO_DAY?'today':''} ${[0,6].includes(new Date(d).getUTCDay())?'weekend':''}">${d.slice(8)}<small>${['周日','周一','周二','周三','周四','周五','周六'][new Date(d).getUTCDay()]}</small></div>`).join('')}</div></div>
  ${list.map(r=>`<div class="gantt-row"><div class="roomlabel"><span class="roomthumb">${ico('bed')}</span><span><b>${r.id}</b><small>${r.type} ${r.area}㎡</small></span></div><div class="lane" data-drop-room="${r.id}">${S.bookings.filter(b=>b.room===r.id&&b.state!=='已取消'&&overlap(b.start,b.end,U.date,dayAdd(U.date,U.days))).map(b=>{let start=(dateNum(b.start)-dateNum(U.date))/86400000,end=(dateNum(b.end)-dateNum(U.date))/86400000,l=Math.max(0,start)/U.days*100,w=(Math.min(U.days,end)-Math.max(0,start))/U.days*100;return `<button class="bar ${b.state==='入住中'?'':b.state==='已锁房'?'future':'soft'} ${b.id===bk.id?'selected':''}" style="left:${l}%;width:${Math.max(w,.7)}%" ${act('booking',b.id)} draggable="${['草案','软占位','待审批'].includes(b.state)}" data-drag-booking="${b.id}" title="${h(b.customer+' '+b.start+' → '+b.end+' '+b.state)}">${av(b.customer,'sm pink')}<b>${h(b.customer)}</b><span>${range(b.start,b.end)}</span>${pill(b.state)}</button>`}).join('')}
@@ -462,7 +462,7 @@ function roomsView(){
  ${card('资源校验清单',`<div class="listrow">${ico('checkcircle','green')}<span class="small">房间占用与清洁缓冲</span></div><div class="listrow">${ico('checkcircle','green')}<span class="small">房型容量</span></div><div class="listrow">${ico(bk.ready?'checkcircle':'alert',bk.ready?'green':'orange')}<span class="small">护理人员</span></div><div class="listrow">${ico('checkcircle','green')}<span class="small">合同及收款</span></div>`)}
  </aside></div>`;
 }
-function staffBlock(s,r){if(!s.valid)return '资质有效性未通过';if(!r.skills.every(x=>s.skills.includes(x)))return '缺少所需能力：'+r.skills.filter(x=>!s.skills.includes(x)).join('、');if(s.shift==='休息'&&r.start===DEMO_DAY)return '当天休息，不能自动占用';const conflict=S.assignments.find(a=>a.staff===s.id&&a.id!==r.assignment&&overlap(a.start,a.end,r.start,r.end));if(conflict)return '时间重叠：'+conflict.customer+' '+range(conflict.start,conflict.end);return '';}
+function staffBlock(s,r){if(!s.valid)return '资质有效性未通过';if(!r.skills.every(x=>s.skills.includes(x)))return '缺少所需能力：'+r.skills.filter(x=>!s.skills.includes(x)).join('、');if(s.shift==='休息'&&r.start===DEMO_DAY)return '当天休息，请改派其他人员';const conflict=S.assignments.find(a=>a.staff===s.id&&a.id!==r.assignment&&overlap(a.start,a.end,r.start,r.end));if(conflict)return '时间重叠：'+conflict.customer+' '+range(conflict.start,conflict.end);return '';}
 function dispatchView(){
  const r=find('requests',U.request)||S.requests[0],s=emp(U.selectedStaff)||S.staff[5],block=staffBlock(s,r),list=S.staff.filter(s=>s.skills.includes('母婴照护')&&(U.staffFilter==='全部'||(U.staffFilter==='可安排'?!staffBlock(s,r):!s.valid)));
  let view='';
@@ -544,7 +544,7 @@ function rightsView(){
  return `<div class="filters"><div><label>履约合同</label>${select('contract-pick',S.contracts.map(c=>[c.id,c.customer+' / '+c.id+' / '+c.state]),c.id,'data-change="contract"')}</div><span class="pill blue">${h(c.package)}</span>${pill(c.state)}${c.frozen?pill('退款申请中 · 权益冻结','orange'):''}<span class="grow"></span>${btn('发起退款测算','refund-new',c.id,'','wallet')}</div>
  <div class="kpis four">${kpi('签约金额',c.amount.toLocaleString(),'元','合同承诺总额','file','','rights')}${kpi('已认领实收',c.paid.toLocaleString(),'元','资金到账记录','wallet','green','rights')}${kpi('已履约分摊',Math.round(v.performed).toLocaleString(),'元','按核定服务量分摊','chart','purple','rights')}${kpi('服务成本',c.cost.toLocaleString(),'元','已记录人员及服务成本','gift','orange','rights')}</div>
  <section class="card mb16">${tabs(['服务权益','服务段与成本','合同收退款'],U.rightsTab,'rights-tab')}</section>
- ${U.rightsTab==='服务权益'?rightsSummary(c)+card('权益变动流水',flow.length?table(['交易编号','类型','源权益','目标权益','状态','经办时间'],flow.map(l=>tr([h(l.id),h(l.type),h(l.from),h(l.to),pill(l.state),l.time]))):empty('当前合同暂无权益转换','转换会同时记录源扣减与目标增加，保留原分摊价值。'),'','mt20'):
+ ${U.rightsTab==='服务权益'?rightsSummary(c)+card('权益变动流水',flow.length?table(['交易编号','类型','源权益','目标权益','状态','经办时间'],flow.map(l=>tr([h(l.id),h(l.type),h(l.from),h(l.to),pill(l.state),l.time]))):empty('当前合同暂无权益转换','提交转换后会同时记录源扣减与目标增加。'),'','mt20'):
  U.rightsTab==='服务段与成本'?`${card('医院 → 会所 → 赠送 / 住家',`<div class="segmentcards">${segs.map(s=>`<div class="segmentcard ${s.gift?'gift':''}"><div class="between"><b class="small">${s.gift?'赠送':s.scene}服务</b>${pill(s.state)}</div><p class="small mt12">${range(s.start,s.end)}</p><p class="tiny muted">${s.days}个${s.state==='计划中'?'计划':'已核定'}服务日</p><div class="row mt12">${av(ename(s.staff),'sm green')}<b class="small">${ename(s.staff)}</b></div><p class="tiny muted mt8">日标准 ${s.rate}元 ${s.subsidy?' + 补贴'+s.subsidy+'元':''}</p><div class="mt12">${lnk(s.state==='计划中'?'拆分未来服务段':'查看已核定依据','segment',s.id)}</div></div>`).join('')||empty('暂无已登记服务段')}</div>`)}
  ${card('分段核算明细',table(['服务段','场景','人员','起止','有效服务日','日薪/日补贴','预计/核定成本','状态'],segs.map(s=>tr([s.id,s.gift?'赠送':s.scene,ename(s.staff),range(s.start,s.end),String(s.days),s.rate+' / '+s.subsidy,money(s.days*(s.rate+s.subsidy)),pill(s.state)]))),'','mt20')}`:
  `${card('合同与收款记录',kv([['合同编号',c.id],['客户',c.customer],['服务套餐',c.package],['计划时间',c.start+' 至 '+c.end],['应收总额',money(c.amount)],['已收款',money(c.paid)],['未收款',money(v.balance)],['负责人',c.sales],['履约状态',c.state]]),btn('查看合同快照','contract-detail',c.id,'sm','file'))}
@@ -561,8 +561,8 @@ function payrollView(){
  return `<div class="filters"><div><label>工资归属期</label><span class="pill blue">2026年09月 · 本月批次</span></div>${filterSelect('结算状态','payFilter',['全部',...order],U.payFilter)}<span class="grow"></span><span class="small muted">日标准来自规则快照</span></div>
  <div class="kpis four">${kpi('本批待支付',unPaid.toLocaleString(),'元','含尚未锁定的试算值','wallet','','payroll')}${kpi('已核对支付',paid.toLocaleString(),'元','已核对回执金额','checkcircle','green','payroll')}${kpi('等待试算',S.payroll.filter(p=>p.state==='待试算').length,'人','尚未形成审批快照','clock','orange','payroll')}${kpi('差额调整',S.payroll.reduce((a,p)=>a+p.adjustments.length,0),'笔','独立调整单','file','purple','payroll')}</div>
  <div class="wide-layout"><div class="col"><section class="card"><div class="cardhead"><h2>服务人员结算清单</h2><span class="small muted">${list.length}人</span></div>${table(['人员 / 工号','基础金额','场景补贴','奖励','待/已支付金额','状态','操作'],list.map(x=>{let y=payAmount(x);return tr([`<div class="row g8">${av(ename(x.staff),'sm green')}<span><b>${ename(x.staff)}</b><span class="sub">${x.staff}</span></span></div>`,money(y.base),money(y.subsidy),money(y.bonus),`<b class="blue">${money(y.total)}</b>`,pill(x.state),lnk('明细','pay-select',x.id)],'pay-select',x.id,x.id===p.id);} ))}</section>
- ${card('当前人员服务依据',table(['服务段','对象','场景','有效服务日','标准','核定状态'],S.segments.filter(s=>s.staff===p.staff&&s.state==='已核定').map(s=>tr([s.id,find('contracts',s.contract)?.customer||'—',s.scene,String(s.days),s.rate+'元/日 + '+s.subsidy+'元/日补贴',pill(s.state)])))+(p.baseFallback?note('另含导入核定实绩 '+money(p.baseFallback)+'，来源 IMP-PAY-09，可追溯原始核定记录。'):''))}
- ${card('差额调整与申诉',p.adjustments.length?table(['调整单','金额','原因','状态'],p.adjustments.map(v=>tr([v.id,money(v.amount,2),`<span style="white-space:normal">${h(v.reason)}</span>`,pill(v.state)]))):empty('暂无差额调整','锁定或支付后的更正，形成新的独立调整记录。'),btn('发起调整','pay-adjust',p.id,'sm','plus'))}</div>
+ ${card('当前人员服务依据',table(['服务段','对象','场景','有效服务日','标准','核定状态'],S.segments.filter(s=>s.staff===p.staff&&s.state==='已核定').map(s=>tr([s.id,find('contracts',s.contract)?.customer||'—',s.scene,String(s.days),s.rate+'元/日 + '+s.subsidy+'元/日补贴',pill(s.state)])))+(p.baseFallback?note('另含导入核定实绩 '+money(p.baseFallback)+'。'):''))}
+ ${card('差额调整与申诉',p.adjustments.length?table(['调整单','金额','原因','状态'],p.adjustments.map(v=>tr([v.id,money(v.amount,2),`<span style="white-space:normal">${h(v.reason)}</span>`,pill(v.state)]))):empty('暂无差额调整','锁定或支付后如需更正，请新建调整单。'),btn('发起调整','pay-adjust',p.id,'sm','plus'))}</div>
  <aside class="col detail-side">${card('薪酬结算明细',`<div class="row">${av(ename(p.staff),'lg green')}<div class="grow"><h2>${ename(p.staff)}</h2><p class="tiny muted">${p.staff} · ${p.period}</p></div>${pill(p.state)}</div><div class="divider"></div><div class="between"><h4>金额构成</h4><span class="tiny blue">规则 V2026.09</span></div>${[['基础服务费',a.base],['医院 / 住家补贴',a.subsidy],['经核定奖励',a.bonus],['依法核定扣缴',-a.deduction]].map(([t,v])=>`<div class="payline"><span class="muted">${t}</span><b>${money(v,2)}</b></div>`).join('')}<div class="paytotal mt16"><span class="small">本快照应付</span><b>${money(a.total,2)}</b></div><div class="process">${['试算','业务复核','财务终审','锁定','回执'].map((t,i)=>`<div class="${order.indexOf(p.state)>i?'done':order.indexOf(p.state)===i?'current':''}"><i>${order.indexOf(p.state)>i?'✓':i+1}</i>${t}</div>`).join('')}</div>
  <div class="col" style="gap:9px">${['待试算','试算完成'].includes(p.state)?btn('修改奖励参数','pay-edit',p.id,'full','settings')+btn('重新试算','pay-calc',p.id,'full primary','refresh'):''}${p.state==='试算完成'?btn('提交业务复核','pay-approve',p.id,'full primary','check'):p.state==='业务已复核'?btn('提交财务终审','pay-approve',p.id,'full primary','check'):p.state==='财务已终审'?btn('锁定本次快照','pay-lock',p.id,'full primary','lock'):p.state==='已锁定'?btn('核对付款回执','pay-receipt',p.id,'full primary','wallet'):p.state==='已支付'?note('付款回执已登记。','ok'):''}</div>`,lnk('审批记录','pay-audit',p.id))}
  </aside></div>`;
@@ -624,7 +624,7 @@ const VIEWS={dashboard:dashboardView,twin:twinView,residents:residentView,rooms:
 
 function recordModal(id=''){
  const who=id||U.mother;
- modal('新增实际照护记录',`<div class="formgrid">${field('记录对象',select('rec-subject',[...S.mothers.map(m=>[m.id,m.name+' · 母亲 / '+m.room]),...S.babies.map(b=>[b.id,b.name+' · '+b.id+' / '+b.room])],who))}${field('记录类型',select('rec-type',['生活观察','本人反馈','睡眠 / 排泄','外院资料接收','照护服务'], '生活观察'))}${field('实际记录人',select('rec-actor',careStaff(),subject(who)?.owner||subject(who)?.custody||'E001'))}${field('发生时间',input('rec-time',DEMO_DAY+'T'+CLOCK,'datetime-local'))}${field('客观记录',area('rec-note'),true)}</div>${U.offline?note('网络中断：仅存为本地草稿，不更改已确认护理状态。','warn'):''}`,btn('取消','close')+btn(U.offline?'保存草稿':'保存实际记录','record-save','','primary','check'),'填写现场观察与本人反馈。');
+ modal('新增实际照护记录',`<div class="formgrid">${field('记录对象',select('rec-subject',[...S.mothers.map(m=>[m.id,m.name+' · 母亲 / '+m.room]),...S.babies.map(b=>[b.id,b.name+' · '+b.id+' / '+b.room])],who))}${field('记录类型',select('rec-type',['生活观察','本人反馈','睡眠 / 排泄','外院资料接收','照护服务'], '生活观察'))}${field('实际记录人',select('rec-actor',careStaff(),subject(who)?.owner||subject(who)?.custody||'E001'))}${field('发生时间',input('rec-time',DEMO_DAY+'T'+CLOCK,'datetime-local'))}${field('客观记录',area('rec-note'),true)}</div>${U.offline?note('网络中断，本次将保存为草稿。','warn'):''}`,btn('取消','close')+btn(U.offline?'保存草稿':'保存实际记录','record-save','','primary','check'),'填写现场观察与本人反馈。');
 }
 function recordSave(){
  const id=val('rec-subject'),type=val('rec-type'),text=val('rec-note'),time=val('rec-time'),actor=val('rec-actor');
@@ -632,7 +632,7 @@ function recordSave(){
  if(!time||!Number.isFinite(dateNum(time))||dateNum(time)>now())return fail('实际发生时间不能为空或晚于当前时间。');
  if(bb(id)&&bb(id).state!=='在所'&&type!=='外院资料接收')return fail('该宝宝不在所内，不能登记已在所完成的照护。可接收外院资料。');
  const rec={id:inc('REC'),subject:id,type,note:text,actor,time:time.slice(11),source:'人工录入 / '+DEMO_DAY};
- if(U.offline){S.drafts.push({...rec,id:inc('DRAFT')});return commit('已保存本地草稿，未更新护理事实。');}
+ if(U.offline){S.drafts.push({...rec,id:inc('DRAFT')});return commit('已保存本地草稿。');}
  S.records.unshift(rec);audit('新增实际照护记录',subjectName(id)+' · '+type,'residents','照护',rec.id);commit('已保存记录，母婴时间线已更新。');
 }
 function taskModal(id){
@@ -640,7 +640,7 @@ function taskModal(id){
  if(t.state==='已完成')return drawer('护理任务执行记录',kv([['任务',t.title],['任务ID',t.id],['对象',subjectName(t.subject)+' / '+t.subject],['实际时间',t.actual||t.time],['执行人',ename(t.owner)],['记录',t.note||'已登记实际执行情况。']]));
  if(t.type==='喂养'){U.feedBaby=t.subject;clearScan();return go('feeding');}
  if(t.type==='交接'&&bb(t.subject)){const v=S.handovers.find(v=>v.baby===t.subject&&v.state==='待接收');return v?handoverOpen(v.id):handoverNew(t.subject);}
- modal('执行护理任务',`${kv([['计划',t.title],['服务对象',subjectName(t.subject)+' / '+t.subject],['计划时间',t.time],['当前责任人',ename(t.owner)]])}<div class="divider"></div><div class="formgrid">${field('本次执行状态',select('task-result',['已完成','进行中','暂不能完成'],'已完成'))}${field('实际执行人',select('task-actor',staffOpts(),t.owner))}${field('实际执行记录 / 未完成原因',area('task-note',t.note),true)}</div>`,btn('取消','close')+btn(U.offline?'存为离线草稿':'保存执行结果','task-save',t.id,'primary','check'),'任务要有实际记录，不能只改完成状态。');
+ modal('执行护理任务',`${kv([['计划',t.title],['服务对象',subjectName(t.subject)+' / '+t.subject],['计划时间',t.time],['当前责任人',ename(t.owner)]])}<div class="divider"></div><div class="formgrid">${field('本次执行状态',select('task-result',['已完成','进行中','暂不能完成'],'已完成'))}${field('实际执行人',select('task-actor',staffOpts(),t.owner))}${field('实际执行记录 / 未完成原因',area('task-note',t.note),true)}</div>`,btn('取消','close')+btn(U.offline?'存为离线草稿':'保存执行结果','task-save',t.id,'primary','check'),'请填写本次实际执行情况。');
 }
 function taskSave(id){
  const t=find('tasks',id),text=val('task-note'),result=val('task-result'),actor=val('task-actor');
@@ -661,25 +661,25 @@ function residentList(){
 }
 function residentRows(q){const list=S.mothers.filter(m=>(m.name+m.id+m.room).includes(q));return table(['母亲','房间','在所状态','宝宝','照护责任','操作'],list.map(m=>tr([`${av(m.name,'sm pink')} <b>${m.name}</b><span class="sub">${m.id}</span>`,m.room,pill(m.state),familyBabies(m.id).map(b=>h(b.name)+' '+pill(b.state)).join('<br>'),ename(m.owner),btn('进入个案','open-resident',m.id,'sm primary')])));}
 function motherState(id){
- const m=mtr(id);modal(m.state==='外出'?'登记母亲返回':'登记母亲外出',`${note('只改变母亲自己的在所状态。婴儿照护、托管责任、房间占用和费用保持原状。')}<div class="formgrid mt16">${field('母亲',input('state-name',m.name,'text','readonly'))}${field('登记人员',select('state-actor',careStaff(),m.owner))}${field('实际情况 / 交接说明',area('state-note'),true)}</div>${check('state-confirm','已经核实本人实际状态及婴儿后续照护安排。')}`,btn('取消','close')+btn('确认登记','mother-state-save',id,'primary','check'));
+ const m=mtr(id);modal(m.state==='外出'?'登记母亲返回':'登记母亲外出',`<div class="formgrid">${field('母亲',input('state-name',m.name,'text','readonly'))}${field('登记人员',select('state-actor',careStaff(),m.owner))}${field('实际情况 / 交接说明',area('state-note'),true)}</div>${check('state-confirm','已核实本人实际状态及婴儿后续照护安排。')}`,btn('取消','close')+btn('确认登记','mother-state-save',id,'primary','check'));
 }
 function clearScan(){U.scan=null;U.scanInput='';U.scannedBaby='';U.scanError='';U.scanStep=1;U.scanCustody=null;}
 function scanSample(kind){
  const b=bb(U.feedBaby),normal=S.milk.find(x=>x.baby===b.id&&x.state==='可用'),other=S.milk.find(x=>x.mother===b.mother&&x.baby!==b.id&&x.state==='可用')||S.milk.find(x=>x.baby!==b.id&&x.state==='可用');
  const x=kind==='normal'?normal:kind==='wrong'?other:kind==='used'?S.milk.find(x=>x.state==='已使用'):kind==='expired'?S.milk.find(x=>x.state==='使用窗已过'):S.milk.find(x=>x.state==='已隔离');
- if(!x)return toast('当前对象没有可用奶瓶，可切换到林小满或恢复初始数据。',true);
+ if(!x)return toast('当前宝宝没有可用奶瓶。',true);
  U.scannedBaby='BABY-'+b.id;U.scanInput=x.id;U.scan=null;U.scanError='';U.scanStep=1;render();$('#container-code')?.focus();toast('已填入条码，请点击“开始核验”。');
 }
 function scanVerify(){
  U.scannedBaby=val('baby-code');U.scanInput=val('container-code').toUpperCase();const b=bb(U.feedBaby),x=find('milk',U.scanInput);
  let error='';
- if(U.offline)error='断网时不能在线确认关键核验。请按现场应急预案核实。';
+ if(U.offline)error='网络中断，暂不能完成核验。请按现场应急预案核实。';
  else if(b.state!=='在所')error='目标婴儿尚未在所，不能记录在所喂养。';
  else if(U.scannedBaby!=='BABY-'+b.id)error='婴儿身份码不匹配。';
  else if(!x)error='没有找到此奶瓶，不能将未知条码视为正常奶源。';
  else if(x.baby!==b.id)error=x.mother===b.mother?'该奶瓶适用另一名宝宝。':'奶源与目标婴儿不匹配。';
  else if(x.state!=='可用')error='奶瓶当前为“'+x.state+'”，不可按正常可用核验。';
- else if(dateNum(x.deadline)<now())error='已超过该奶瓶记录的使用时限，需要按SOP处理。';
+ else if(dateNum(x.deadline)<now())error='已超过该奶瓶的使用时限，请弃置或另行处置。';
  else if(find('devices',x.device)?.state!=='在线')error='储存设备状态无法确认，奶瓶须先由负责人核实。';
  U.scan=x?.id||null;U.scanError=error;U.scanStep=error?1:2;U.scanCustody=b.custody;render();if(error)toast(error,true);else toast('身份和奶瓶校验通过，请完成独立复核和实际记录。');
 }
@@ -727,7 +727,7 @@ function handoverAccept(id){
  if(!online())return;let v=find('handovers',id),b=bb(v.baby);
  if(v.state!=='待接收'||b.custody!==v.from)return fail('交接状态或当前责任已变化，请重新核实。');
  if(val('receive-code')!=='BABY-'+b.id)return fail('婴儿身份码不匹配。请核对本次接收的具体宝宝。');
- if(val('receive-actor')!==v.to||v.to===v.from)return fail('必须由本单指定的另一位接收人独立确认，不能由送交人代签。');
+ if(val('receive-actor')!==v.to||v.to===v.from)return fail('请由本单指定的接收人确认。');
  if(!checked('receive-check')||val('receive-note').length<5)return fail('请核对交接说明并完成独立接收确认。');
  v.state='已签收';v.acceptedAt=CLOCK;v.reason=val('receive-note');b.custody=v.to;b.location=v.location;b.locationAt=CLOCK;b.source='双向交接确认';b.pending=false;
  const t=S.tasks.find(t=>t.subject===b.id&&t.type==='交接'&&t.state!=='已完成');if(t){t.state='已完成';t.note=ename(v.from)+' → '+ename(v.to)+' 已双向核验';t.actual=CLOCK;}
@@ -740,8 +740,8 @@ function shiftPackage(){
 function bookingModal(id='',room=''){
  const b=find('bookings',id);U.editBooking=id;
  const defaults={customer:'方予宁',contract:'C018',room:room||'A311',start:'2026-09-20T14:00',end:'2026-10-18T12:00',babies:1,ready:false},x=b||defaults;
- if(b?.state==='入住中')return drawer('已入住订单',`${note('已入住的历史区间不能直接改写。需要换房或延住时，请使用对应流程。')}<div class="row mt20">${btn('发起换房','room-move',b.id,'primary','handover')}${btn('延住申请','booking-extend',b.id,'','calendar')}</div>`);
- modal(b?'调整未来排房计划':'新建排房草案',`<div class="formgrid">${field('履约合同',select('bk-contract',S.contracts.map(c=>[c.id,c.customer+' · '+c.id]),x.contract))}${field('安排房间',select('bk-room',S.rooms.map(r=>[r.id,r.id+' · '+r.type+' / '+r.state]),room||x.room))}${field('计划入住',input('bk-start',x.start,'datetime-local'))}${field('计划离所',input('bk-end',x.end,'datetime-local'))}${field('婴儿人数',input('bk-babies',x.babies,'number','min="1" max="3"'))}${field('护理准备',select('bk-ready',[['no','尚未确认'],['yes','已核实合格人员及首班准备']],x.ready?'yes':'no'))}${field('排房 / 调整依据',area('bk-reason','根据已签合同与入住计划安排，提交前核实房间及护理准备。'),true)}</div>${note('先保存草案，再核验并提交审批。')}`,btn('取消','close')+btn('保存排房草案','booking-save','','primary','check'),'',true);
+ if(b?.state==='入住中')return drawer('已入住订单',`${note('本单已入住。如需变更，请办理换房或延住。')}<div class="row mt20">${btn('发起换房','room-move',b.id,'primary','handover')}${btn('延住申请','booking-extend',b.id,'','calendar')}</div>`);
+ modal(b?'调整未来排房计划':'新建排房草案',`<div class="formgrid">${field('履约合同',select('bk-contract',S.contracts.map(c=>[c.id,c.customer+' · '+c.id]),x.contract))}${field('安排房间',select('bk-room',S.rooms.map(r=>[r.id,r.id+' · '+r.type+' / '+r.state]),room||x.room))}${field('计划入住',input('bk-start',x.start,'datetime-local'))}${field('计划离所',input('bk-end',x.end,'datetime-local'))}${field('婴儿人数',input('bk-babies',x.babies,'number','min="1" max="3"'))}${field('护理准备',select('bk-ready',[['no','尚未确认'],['yes','已核实合格人员及首班准备']],x.ready?'yes':'no'))}${field('排房 / 调整依据',area('bk-reason','根据已签合同与入住计划安排，提交前核实房间及护理准备。'),true)}</div>${note('保存后可提交锁房审批。')}`,btn('取消','close')+btn('保存排房草案','booking-save','','primary','check'),'',true);
 }
 function bookingValidate(b,ignore=b.id){
  const r=find('rooms',b.room),c=find('contracts',b.contract);
@@ -754,7 +754,7 @@ function bookingValidate(b,ignore=b.id){
  const endBuffered=new Date(dateNum(b.end)+S.config.cleanHours*3600000).getTime();
  const clash=S.bookings.find(x=>x.id!==ignore&&x.room===b.room&&x.state!=='已取消'&&['入住中','已锁房','软占位','待审批'].includes(x.state)&&dateNum(b.start)<dateNum(x.end)+S.config.cleanHours*3600000&&dateNum(x.start)<endBuffered);
  if(clash)return '房间冲突：'+clash.customer+' / '+clash.id+'，含清洁缓冲。请调整房间或日期。';
- if(!b.ready)return '护理准备尚未落实，不能只凭房间空闲确认入住。';
+ if(!b.ready)return '护理准备尚未落实，请先安排照护人员。';
  if(c.paid<c.amount*S.config.firstPayment/100)return '已认领首款不足 '+S.config.firstPayment+'%，不满足默认启动条件。';
  if(c.frozen||c.state==='已终止')return '合同处于退款冻结或终止状态，不能继续锁房。';
  return '';
@@ -764,16 +764,16 @@ function bookingSave(){
  let b=find('bookings',U.editBooking),c=find('contracts',val('bk-contract')),x={id:b?.id||inc('BK'),customer:c?.customer,contract:c?.id,mother:c?.mother,room:val('bk-room'),start:val('bk-start'),end:val('bk-end'),babies:Number(val('bk-babies')),ready:val('bk-ready')==='yes',state:'草案',version:(b?.version||0)+1,reason:val('bk-reason')};
  if(!x.customer||!x.start||!x.end||!Number.isFinite(dateNum(x.end))||dateNum(x.end)<=dateNum(x.start)||dateNum(x.start)<now())return fail('未来排房需关联合同，且离所晚于入住；入住时间不能早于当前时间。');
  if(!Number.isInteger(x.babies)||x.babies<1||x.babies>3||x.reason.length<5)return fail('请核对婴儿人数，并填写排房依据。');
- if(b?.state==='入住中'||b?.state==='已锁房')return fail('已确认占用不能直接覆盖，请走变更流程。');
+ if(b?.state==='入住中'||b?.state==='已锁房')return fail('已确认占用请办理换房或延住。');
  if(b)Object.assign(b,x);else S.bookings.push(x);U.selectedBooking=x.id;U.page='rooms';audit('保存排房草案',x.id+' / '+x.customer+' / '+x.room,'rooms','排房',x.id);commit('排房草案已保存。请继续核验并提交锁房审批。');
 }
 function bookingSubmit(id){
  const b=find('bookings',id),e=bookingValidate(b);
- modal('锁房前资源核验',`${kv([['客户 / 合同',b.customer+' / '+b.contract],['房间 / 时段',b.room+' / '+range(b.start,b.end)],['婴儿人数',b.babies+'位'],['护理准备',b.ready?'已确认':'未确认']])}<div class="mt16">${e?note(h(e),'error'):note('完整区间、容量、首款与人员准备已通过校验。','ok')}</div>${check('bk-submit-check','已核对合同与入住准备，提交此版本的排房申请。')}`,btn('取消','close')+btn('提交锁房审批','booking-submit-save',id,'primary','lock'),'提交申请后仍需审批回写与最终占用校验。');
+ modal('锁房前资源核验',`${kv([['客户 / 合同',b.customer+' / '+b.contract],['房间 / 时段',b.room+' / '+range(b.start,b.end)],['婴儿人数',b.babies+'位'],['护理准备',b.ready?'已确认':'未确认']])}<div class="mt16">${e?note(h(e),'error'):note('完整区间、容量、首款与人员准备已通过校验。','ok')}</div>${check('bk-submit-check','已核对合同与入住准备，提交此版本的排房申请。')}`,btn('取消','close')+btn('提交锁房审批','booking-submit-save',id,'primary','lock'),'提交后等待审批。');
 }
 function roomMove(id){
  const b=find('bookings',id),m=mtr(b.mother);if(!m)return toast('当前订单没有在住母婴对象。',true);
- modal('实际换房与入住交接',`${note('完成确认后，原房进入待清洁，新房更新入住。正在护理室托管的宝宝不会自动变更为已在新房。')}<div class="formgrid mt16">${field('当前对象 / 房间',input('move-current',m.name+' / '+b.room,'text','readonly'))}${field('目标房间',select('move-room',S.rooms.filter(r=>r.id!==b.room).map(r=>[r.id,r.id+' · '+r.type+' / '+r.state]),'B412'))}${field('换房原因',area('move-reason'),true)}</div>${check('move-approved','换房已按内部审批通过，且客户对安排已有确认。')}${check('move-performed','已实际完成房间物品与在房对象核对，护理责任安排保持明确。')}`,btn('取消','close')+btn('核验并确认实际换房','room-move-save',id,'primary','handover'),'不是直接改房号；原房、新房、占用和对象需联动。');
+ modal('实际换房与入住交接',`${note('确认后原房进入待清洁，新房更新为入住。护理室托管中的宝宝请另行办理接还。')}<div class="formgrid mt16">${field('当前对象 / 房间',input('move-current',m.name+' / '+b.room,'text','readonly'))}${field('目标房间',select('move-room',S.rooms.filter(r=>r.id!==b.room).map(r=>[r.id,r.id+' · '+r.type+' / '+r.state]),'B412'))}${field('换房原因',area('move-reason'),true)}</div>${check('move-approved','换房已按内部审批通过，且客户对安排已有确认。')}${check('move-performed','已完成房间物品与在房对象核对。')}`,btn('取消','close')+btn('核验并确认实际换房','room-move-save',id,'primary','handover'),'请核对原房、新房与在房对象。');
 }
 function roomMoveSave(id){
  if(!online())return;const b=find('bookings',id),m=mtr(b.mother),room=val('move-room'),old=b.room;
@@ -793,7 +793,7 @@ function extendModal(id){
 }
 function dispatchConfirm(id){
  const r=find('requests',id),s=emp(U.selectedStaff),error=staffBlock(s,r);
- modal('确认计划服务人员',`${kv([['待派需求',r.customer+' / '+r.id],['候选人员',s.name+' / '+s.id],['服务场景',r.scene],['服务区间',r.start+' 至 '+r.end],['需要能力',r.skills.join('、')]])}<div class="mt16">${error?note(h(error),'error'):note('本地资格与完整区间校验通过。','ok')}</div>${check('dispatch-checked','派单审批通过，人员确认能够按时到岗，首班准备已核实。')}`,btn('取消','close')+btn('确认安排','dispatch-save',id,'primary','check'),'计划安排不改变当前实际保管责任。');
+ modal('确认计划服务人员',`${kv([['待派需求',r.customer+' / '+r.id],['候选人员',s.name+' / '+s.id],['服务场景',r.scene],['服务区间',r.start+' 至 '+r.end],['需要能力',r.skills.join('、')]])}<div class="mt16">${error?note(h(error),'error'):note('资格与排期已通过校验。','ok')}</div>${check('dispatch-checked','派单审批通过，人员确认能够按时到岗，首班准备已核实。')}`,btn('取消','close')+btn('确认安排','dispatch-save',id,'primary','check'),'确认后写入派单排期。');
 }
 function dispatchSave(id){
  if(!online())return;const r=find('requests',id),s=emp(U.selectedStaff),error=staffBlock(s,r);
@@ -805,28 +805,28 @@ function dispatchSave(id){
  audit('计划派单已确认',r.customer+' → '+s.name+' / '+range(r.start,r.end),'dispatch','派单',r.id);commit('派单与人员占用已更新；关联入住准备已落实。');
 }
 function staffDetail(id){
- const s=emp(id);drawer('人员服务档案',`<div class="row">${av(s.name,'lg green')}<div><h2>${s.name}</h2><p class="small muted">${s.id} · ${s.role}${s.title?' · '+s.title:''}</p></div>${pill(s.valid?'资质有效':'资质待复核',s.valid?'green':'orange')}</div><div class="divider"></div>${kv([['职务',s.title||s.role],['岗位',s.role],['岗位等级',s.level],['相关技能',s.skills.join('、')],['服务经验',s.years+'年'],['当前班次',s.shift],['在管宝宝',S.babies.filter(b=>b.custody===s.id&&b.state==='在所').map(b=>b.name+' / '+b.id).join('、')||'无在管对象']])}${s.bio?`<p class="small mt16">${h(s.bio)}</p>`:''}<div class="divider"></div><h3 class="mb16">已登记排期</h3>${table(['对象','场景','时间'],S.assignments.filter(a=>a.staff===s.id).map(a=>tr([a.customer,a.scene,range(a.start,a.end)])))}<p class="tiny muted mt16">档案展示岗位、技能与排期，不含证件与薪资明细。</p>`,btn('关闭','close'));
+ const s=emp(id);drawer('人员服务档案',`<div class="row">${av(s.name,'lg green')}<div><h2>${s.name}</h2><p class="small muted">${s.id} · ${s.role}${s.title?' · '+s.title:''}</p></div>${pill(s.valid?'资质有效':'资质待复核',s.valid?'green':'orange')}</div><div class="divider"></div>${kv([['职务',s.title||s.role],['岗位',s.role],['岗位等级',s.level],['相关技能',s.skills.join('、')],['服务经验',s.years+'年'],['当前班次',s.shift],['在管宝宝',S.babies.filter(b=>b.custody===s.id&&b.state==='在所').map(b=>b.name+' / '+b.id).join('、')||'无在管对象']])}${s.bio?`<p class="small mt16">${h(s.bio)}</p>`:''}<div class="divider"></div><h3 class="mb16">已登记排期</h3>${table(['对象','场景','时间'],S.assignments.filter(a=>a.staff===s.id).map(a=>tr([a.customer,a.scene,range(a.start,a.end)])))}`,btn('关闭','close'));
 }
 function shiftEdit(key){
  const [id,index]=key.split('|'),s=emp(id);U.shiftIndex=Number(index);U.shiftStaff=id;
- modal('调整班次计划',`${kv([['人员',s.name],['日期',dayAdd(DEMO_DAY,Number(index))],['现有班次',s.schedule[index]]])}<div class="formgrid mt20">${field('新班次',select('roster-shift',['早班','中班','夜班','休息'],s.schedule[index]))}${field('调整原因',input('roster-reason','','text','placeholder="填写换班或休息原因"'))}</div>${note('今天仍承担照护责任的人员，不能通过改为休息跳过责任交接。','warn')}`,btn('取消','close')+btn('保存班表调整','shift-edit-save','','primary','calendar'));
+ modal('调整班次计划',`${kv([['人员',s.name],['日期',dayAdd(DEMO_DAY,Number(index))],['现有班次',s.schedule[index]]])}<div class="formgrid mt20">${field('新班次',select('roster-shift',['早班','中班','夜班','休息'],s.schedule[index]))}${field('调整原因',input('roster-reason','','text','placeholder="填写换班或休息原因"'))}</div>${note('今日在管宝宝尚未交接的，请先完成接还再改休息。','warn')}`,btn('取消','close')+btn('保存班表调整','shift-edit-save','','primary','calendar'));
 }
 function milkNew(){
- modal('接收奶源与奶瓶登记',`<div class="formgrid">${field('奶瓶编码',input('milk-code','MLK-'+String(S.seq+1).padStart(3,'0')))}${field('适用宝宝',select('milk-baby',S.babies.filter(b=>b.state==='在所').map(b=>[b.id,b.name+' / '+b.id]),U.feedBaby))}${field('奶源类别',select('milk-source',['母乳','配方奶'],'母乳'))}${field('登记量（mL）',input('milk-volume',90,'number','min="1" max="1000"'))}${field('储存设备',select('milk-device',S.devices.filter(d=>d.type==='冷链').map(d=>[d.id,d.id+' / '+d.state]),'FR-02'))}${field('按已审核SOP填写使用截止',input('milk-deadline','2026-09-16T12:00','datetime-local'))}${field('源批次 / 配方批次',input('milk-batch','SRC-260916-NEW'))}${field('接收核验人',select('milk-actor',careStaff(),'E001'))}</div>${check('milk-sop','已核对独立宝宝、来源、批次和适用SOP；截止时间按本奶瓶适用 SOP 填写。')}`,btn('取消','close')+btn('登记奶瓶','milk-create','','primary','bottle'),'设备异常时新奶瓶只能进入隔离待核实状态。',true);
+ modal('接收奶源与奶瓶登记',`<div class="formgrid">${field('奶瓶编码',input('milk-code','MLK-'+String(S.seq+1).padStart(3,'0')))}${field('适用宝宝',select('milk-baby',S.babies.filter(b=>b.state==='在所').map(b=>[b.id,b.name+' / '+b.id]),U.feedBaby))}${field('奶源类别',select('milk-source',['母乳','配方奶'],'母乳'))}${field('登记量（mL）',input('milk-volume',90,'number','min="1" max="1000"'))}${field('储存设备',select('milk-device',S.devices.filter(d=>d.type==='冷链').map(d=>[d.id,d.id+' / '+d.state]),'FR-02'))}${field('使用截止时间',input('milk-deadline','2026-09-16T12:00','datetime-local'))}${field('源批次 / 配方批次',input('milk-batch','SRC-260916-NEW'))}${field('接收核验人',select('milk-actor',careStaff(),'E001'))}</div>${check('milk-sop','已核对宝宝、来源、批次和使用截止。')}`,btn('取消','close')+btn('登记奶瓶','milk-create','','primary','bottle'),'设备异常时，新奶瓶将进入隔离。',true);
 }
 function milkDetail(id){
  const x=find('milk',id),b=bb(x.baby),d=find('devices',x.device);
  drawer('奶源追溯 · '+id,`<div class="row"><div class="bottle" style="transform:scale(.6);margin:0 2px;height:90px"><i></i></div><div class="grow"><h2>${x.id}</h2><p class="small muted">${x.source} · ${x.volume}mL</p>${pill(x.state)}</div></div><div class="divider"></div>${kv([['源母亲',mtr(x.mother).name],['适用婴儿',b.name+' / '+b.id],['批次',x.batch],['登记接收时间',x.received],['设备 / 状态',d.id+' / '+d.state],['记录使用截止',x.deadline.replace('T',' ')],['实际使用',x.used?x.used+'mL / '+x.usedAt:'尚未使用'],['余量弃置',x.discarded===undefined?'尚未记录':x.discarded+'mL']])}<div class="divider"></div><h3 class="mb16">已知流转记录</h3><div class="timeline"><div class="timeitem"><time>${x.received}</time><h4>接收并登记</h4><p>奶源 / 适用宝宝 / 批次已关联</p></div><div class="timeitem"><h4>存放 ${x.device}</h4><p>设备状态：${d.state}，最近数据 ${d.last}</p></div><div class="timeitem"><h4>当前 ${x.state}</h4><p>${h(x.resolution||(x.state==='已隔离'?'需由负责人核实来源与储存链。':'以当前奶瓶记录为准。'))}</p></div></div>`,(x.state==='已隔离'?btn('独立复核处置','milk-review',x.id,'primary','shield'):x.state==='可用'?btn('进入喂养核验','milk-use',x.id,'primary','scan'):'')+(['使用窗已过','可用'].includes(x.state)?btn('登记弃置','milk-discard',x.id,'danger','close'):'')+btn('关闭','close'));
 }
 function milkReview(id){
- const x=find('milk',id);modal('隔离奶瓶独立复核',`${note('设备恢复后，奶瓶仍须单独核实来源与储存链；无法确认应按 SOP 弃置。','warn')}${kv([['奶瓶',id],['设备状态',find('devices',x.device).state],['宝宝',subjectName(x.baby)]])}<div class="formgrid mt20">${field('处置选择',select('milk-resolution',['按SOP弃置','有依据解除隔离'],'按SOP弃置'))}${field('处置人员',select('milk-handler',careStaff(),'E001'))}${field('独立复核人',select('milk-reviewer',careStaff(),'E002'))}${field('处置依据与证据',area('milk-evidence'),true)}</div>${check('milk-review-check','已经按适用SOP完成独立复核，留有相应来源与现场证据。')}`,btn('取消','close')+btn('确认处置','milk-review-save',id,'primary','shield'));
+ const x=find('milk',id);modal('隔离奶瓶独立复核',`${note('请核对来源与储存记录后再处置。无法确认的请弃置。','warn')}${kv([['奶瓶',id],['设备状态',find('devices',x.device).state],['宝宝',subjectName(x.baby)]])}<div class="formgrid mt20">${field('处置选择',select('milk-resolution',['弃置','有依据解除隔离'],'弃置'))}${field('处置人员',select('milk-handler',careStaff(),'E001'))}${field('独立复核人',select('milk-reviewer',careStaff(),'E002'))}${field('处置依据与证据',area('milk-evidence'),true)}</div>${check('milk-review-check','已完成独立复核，并留存来源与现场证据。')}`,btn('取消','close')+btn('确认处置','milk-review-save',id,'primary','shield'));
 }
 
 
 
 function appointmentNew(id=''){
  const m=mtr(id)||mtr(U.mother);U.apptMother=m.id;
- modal('新建内部服务预约',`<div class="formgrid">${field('服务母亲',select('appt-mother',S.mothers.map(m=>[m.id,m.name+' / '+m.room+' / '+m.state]),m.id))}${field('服务项目',select('appt-project',['育儿指导','营养咨询','生活照护指导','亲子互动'],'育儿指导'))}${field('预约日期',input('appt-date-new',DEMO_DAY,'date'))}${field('服务人员',select('appt-staff',staffOpts(s=>s.valid&&(s.skills.includes('母婴照护')||isNutrition(s))),'E006'))}${field('开始时间',input('appt-start','14:30','time'))}${field('结束时间',input('appt-end','15:00','time'))}${field('使用场地',select('appt-space',['指导室A','咨询室B','活动室C'],'指导室A'))}${field('权益来源',input('appt-rights','套餐次数权益 · 预留1次','text','readonly'))}${field('预约说明',area('appt-note','按本人已确认服务需求预约，执行前再次核对对象。'),true)}</div>${check('appt-confirm','已核实本人需求、在所状态及人员准备；仅预留次数，执行后才核销。')}`,btn('取消','close')+btn('校验并创建预约','appointment-create','','primary','calendar'),'检查人员、时间、场地和次数权益。',true);
+ modal('新建内部服务预约',`<div class="formgrid">${field('服务母亲',select('appt-mother',S.mothers.map(m=>[m.id,m.name+' / '+m.room+' / '+m.state]),m.id))}${field('服务项目',select('appt-project',['育儿指导','营养咨询','生活照护指导','亲子互动'],'育儿指导'))}${field('预约日期',input('appt-date-new',DEMO_DAY,'date'))}${field('服务人员',select('appt-staff',staffOpts(s=>s.valid&&(s.skills.includes('母婴照护')||isNutrition(s))),'E006'))}${field('开始时间',input('appt-start','14:30','time'))}${field('结束时间',input('appt-end','15:00','time'))}${field('使用场地',select('appt-space',['指导室A','咨询室B','活动室C'],'指导室A'))}${field('权益来源',input('appt-rights','套餐次数权益 · 预留1次','text','readonly'))}${field('预约说明',area('appt-note','按本人已确认服务需求预约，执行前再次核对对象。'),true)}</div>${check('appt-confirm','已核实本人需求、在所状态及人员准备。')}`,btn('取消','close')+btn('校验并创建预约','appointment-create','','primary','calendar'),'请核对人员、时间、场地和次数。',true);
 }
 function appointmentCreate(){
  if(!online())return;
@@ -847,11 +847,11 @@ function appointmentCreate(){
 }
 function appointmentOpen(id){
  const a=find('appointments',id),m=mtr(a.mother);
- drawer('预约与执行 · '+a.id,`${kv([['母亲 / 房间',m.name+' / '+m.room],['服务内容',a.project],['时间',a.date+' '+a.start+'–'+a.end],['服务人员',ename(a.staff)],['场地',a.space],['状态',a.state],['关联权益',a.rights],['备注',a.note||'按本人已确认需求安排。']])}${a.state==='已预约'?`<div class="divider"></div>${field('实际服务完成情况',area('appt-result'))}${check('appt-done','已实际完成此次服务，并核实对象与有效权益。')}`:a.result?`<div class="divider"></div><p class="small">${h(a.result)}</p>`:''}`,a.state==='已预约'?btn('取消预约并释放次数','appointment-cancel',id,'danger')+btn('完成服务并核销','appointment-complete',id,'primary','check'):btn('关闭','close'),'预约到点后需确认实际完成，并核销对应次数。');
+ drawer('预约与执行 · '+a.id,`${kv([['母亲 / 房间',m.name+' / '+m.room],['服务内容',a.project],['时间',a.date+' '+a.start+'–'+a.end],['服务人员',ename(a.staff)],['场地',a.space],['状态',a.state],['关联权益',a.rights],['备注',a.note||'按本人已确认需求安排。']])}${a.state==='已预约'?`<div class="divider"></div>${field('实际服务完成情况',area('appt-result'))}${check('appt-done','已实际完成此次服务，并核实对象与有效权益。')}`:a.result?`<div class="divider"></div><p class="small">${h(a.result)}</p>`:''}`,a.state==='已预约'?btn('取消预约并释放次数','appointment-cancel',id,'danger')+btn('完成服务并核销','appointment-complete',id,'primary','check'):btn('关闭','close'),'完成后核销对应次数。');
 }
 function rightConvert(id){
  const c=find('contracts',id),r=c.rights,avail=r.hospital-r.usedHospital-r.converted;
- modal('医院陪护 → 延住权益',`${kv([['合同',c.customer+' / '+c.id],['未使用医院权益',avail+' 天'],['默认转换比例','1天医院陪护 → 1天会所延住'],['金额处理','保留原权益分摊价值，合同金额不增加']])}<div class="formgrid mt20">${field('本次转换天数',input('convert-days',1,'number','min="1" step="1"'))}${field('转换理由',input('convert-reason','','text','placeholder="填写客户确认的实际变更原因"'))}</div>${check('convert-approved','客户已确认转换，内部权益变更审批已通过。')}${note('先转换权益，再到入住排房申请延住并校验房间及护理资源。')}`,btn('取消','close')+btn('确认成对转换','right-convert-save',id,'primary','handover'));
+ modal('医院陪护 → 延住权益',`${kv([['合同',c.customer+' / '+c.id],['未使用医院权益',avail+' 天'],['默认转换比例','1天医院陪护 → 1天会所延住'],['金额处理','保留原权益分摊价值']])}<div class="formgrid mt20">${field('本次转换天数',input('convert-days',1,'number','min="1" step="1"'))}${field('转换理由',input('convert-reason','','text','placeholder="填写客户确认的实际变更原因"'))}</div>${check('convert-approved','客户已确认转换，内部权益变更审批已通过。')}${note('转换完成后，请到入住排房办理延住。')}`,btn('取消','close')+btn('确认成对转换','right-convert-save',id,'primary','handover'));
 }
 function convertSave(id){
  if(!online())return;const c=find('contracts',id),r=c.rights,n=Number(val('convert-days')),avail=r.hospital-r.usedHospital-r.converted;
@@ -859,48 +859,48 @@ function convertSave(id){
  if(!Number.isInteger(n)||n<1||n>avail)return fail('转换数量必须为正整数，且不能超过尚未使用或转换的权益余额。');
  if(!checked('convert-approved')||val('convert-reason').length<5)return fail('请填写变更理由，并确认审批已通过。');
  r.converted+=n;const v={id:inc('RT'),contract:id,type:'医院陪护转延住',from:'医院可用权益 -'+n+'天',to:'会所延住权益 +'+n+'天',state:'已完成',time:CLOCK,value:contractValues(c).unit*n,reason:val('convert-reason')};
- S.rightsLog.unshift(v);audit('权益成对转换完成',c.customer+' / '+n+'天 / 合同金额未改变','rights','权益',v.id);commit('已完成源扣减与目标增加。延住排房仍需单独申请。');
+ S.rightsLog.unshift(v);audit('权益成对转换完成',c.customer+' / '+n+'天','rights','权益',v.id);commit('权益已转换。请到入住排房办理延住。');
 }
 function contractDetail(id){
  const c=find('contracts',id);if(!c)return toast('此业务尚未关联合同。',true);
  const v=contractValues(c);
- drawer('内部合同履约快照',`<div class="row">${av(c.customer,'lg pink')}<div><h2>${h(c.customer)}</h2><p class="small muted">${c.id} · ${h(c.state)}</p></div></div><div class="divider"></div>${kv([['套餐',c.package],['计划区间',c.start+' 至 '+c.end],['房间安排',c.room||'待确认'],['合同金额',money(c.amount)],['已认领实收',money(c.paid)],['未收款',money(v.balance)],['会所权益',c.rights.stay+'天'],['赠送权益',c.rights.gift+'天'],['医院陪护',c.rights.hospital+'天'],['次数项目',c.rights.appointments+'次'],['销售负责人',c.sales]])}<div class="divider"></div>${note('该视图为业务快照，不是可签署的真实合同文本。签署文件与合法证据包由简道云及正式电子签服务管理。')}`,btn('进入完整履约','open-contract',c.id,'primary','gift')+btn('关闭','close'));
+ drawer('内部合同履约快照',`<div class="row">${av(c.customer,'lg pink')}<div><h2>${h(c.customer)}</h2><p class="small muted">${c.id} · ${h(c.state)}</p></div></div><div class="divider"></div>${kv([['套餐',c.package],['计划区间',c.start+' 至 '+c.end],['房间安排',c.room||'待确认'],['合同金额',money(c.amount)],['已认领实收',money(c.paid)],['未收款',money(v.balance)],['会所权益',c.rights.stay+'天'],['赠送权益',c.rights.gift+'天'],['医院陪护',c.rights.hospital+'天'],['次数项目',c.rights.appointments+'次'],['销售负责人',c.sales]])}<div class="divider"></div>`,btn('进入完整履约','open-contract',c.id,'primary','gift')+btn('关闭','close'));
 }
 function segmentModal(id){
  const s=find('segments',id);
- if(s.state!=='计划中')return drawer('服务实绩核定依据',`${kv([['服务段',s.id],['合同',s.contract],['人员',ename(s.staff)],['场景',s.scene],['实际区间',s.start+' → '+s.end],['核定服务日',s.days+'天'],['日标准',s.rate+'元/天'],['额外补贴',s.subsidy+'元/天'],['核定状态',s.state]])}<div class="mt16">${note('已核定实绩不可直接覆盖已付记录。')}</div>`);
- modal('拆分未来服务段',`${kv([['原服务段',s.id],['区间',s.start+' → '+s.end],['当前人员',ename(s.staff)],['权益性质',s.gift?'赠送服务':'正式服务']])}<div class="formgrid mt20">${field('新段开始日期',input('split-date',dayAdd(s.start,Math.max(1,Math.floor(s.days/2))),'date'))}${field('接续服务人员',select('split-staff',careStaff(),'E006'))}${field('变更理由',area('split-reason'),true)}</div>${check('split-approved','未来计划更换已审批；到达实际接管时间仍须现场交接。')}`,btn('取消','close')+btn('校验并拆分计划','segment-split-save',id,'primary','handover'));
+ if(s.state!=='计划中')return drawer('服务实绩核定依据',`${kv([['服务段',s.id],['合同',s.contract],['人员',ename(s.staff)],['场景',s.scene],['实际区间',s.start+' → '+s.end],['核定服务日',s.days+'天'],['日标准',s.rate+'元/天'],['额外补贴',s.subsidy+'元/天'],['核定状态',s.state]])}<div class="mt16"></div>`);
+ modal('拆分未来服务段',`${kv([['原服务段',s.id],['区间',s.start+' → '+s.end],['当前人员',ename(s.staff)],['权益性质',s.gift?'赠送服务':'正式服务']])}<div class="formgrid mt20">${field('新段开始日期',input('split-date',dayAdd(s.start,Math.max(1,Math.floor(s.days/2))),'date'))}${field('接续服务人员',select('split-staff',careStaff(),'E006'))}${field('变更理由',area('split-reason'),true)}</div>${check('split-approved','计划更换已审批，到达接管时间仍须现场交接。')}`,btn('取消','close')+btn('校验并拆分计划','segment-split-save',id,'primary','handover'));
 }
 function segmentSave(id){
  if(!online())return;const s=find('segments',id),d=val('split-date'),staff=val('split-staff');
- if(s.state!=='计划中'||!d||dateNum(d)<=dateNum(s.start)||dateNum(d)>=dateNum(s.end)||dateNum(d)<now())return fail('分段日期必须在未来计划区间内部，不能覆盖已发生历史。');
+ if(s.state!=='计划中'||!d||dateNum(d)<=dateNum(s.start)||dateNum(d)>=dateNum(s.end)||dateNum(d)<now())return fail('分段日期须在未来计划区间内。');
  const m=mtr(find('contracts',s.contract)?.mother),req={skills:m&&familyBabies(m.id).length>1?['母婴照护','双胎照护']:['母婴照护'],start:d,end:s.end},e=staffBlock(emp(staff),req);
  if(e)return fail(e);if(val('split-reason').length<5||!checked('split-approved'))return fail('请填写理由并确认计划变更审批。');
  const next={...s,id:inc('SG'),staff,start:d,days:days(d,s.end),rate:emp(staff).rate};s.end=d;s.days=days(s.start,d);S.segments.push(next);S.assignments.push({id:inc('AS'),staff,start:d,end:next.end,customer:find('contracts',s.contract).customer,scene:s.scene});
- audit('拆分未来服务段',s.id+' → '+next.id+' / '+ename(staff),'rights','服务段',next.id);commit('计划已拆段，原历史实绩与当前保管责任没有改变。');
+ audit('拆分未来服务段',s.id+' → '+next.id+' / '+ename(staff),'rights','服务段',next.id);commit('计划已拆段。');
 }
 function refundNew(id){
  const c=find('contracts',id),v=contractValues(c),max=Math.max(0,v.cash-v.performed-S.refunds.filter(r=>r.contract===id&&!['已撤回','已支付'].includes(r.state)).reduce((a,r)=>a+r.amount,0));
- modal('内部退款测算与申请',`${kv([['客户 / 合同',c.customer+' / '+id],['已收款净额',money(v.cash,2)],['已履约分摊',money(v.performed,2)],['可申请上限',money(max,2)]])}<div class="formgrid mt20">${field('申请退款金额（元）',input('refund-amount',Math.min(1000,max).toFixed(2),'number','min="0.01" step="0.01"'))}${field('申请原因',area('refund-reason'))}</div>${check('refund-confirm','已核实未履约范围及合同约定；提交后暂时冻结本合同未使用权益，等待审核。')}${note('提交后进入审核，在所照护继续。')}`,btn('取消','close')+btn('提交测算申请','refund-save',id,'primary','wallet'));
+ modal('内部退款测算与申请',`${kv([['客户 / 合同',c.customer+' / '+id],['已收款净额',money(v.cash,2)],['已履约分摊',money(v.performed,2)],['可申请上限',money(max,2)]])}<div class="formgrid mt20">${field('申请退款金额（元）',input('refund-amount',Math.min(1000,max).toFixed(2),'number','min="0.01" step="0.01"'))}${field('申请原因',area('refund-reason'))}</div>${check('refund-confirm','已核实未履约范围及合同约定；提交后暂时冻结本合同未使用权益，等待审核。')}${note('提交后进入审核，在所照护照常进行。')}`,btn('取消','close')+btn('提交测算申请','refund-save',id,'primary','wallet'));
 }
 function refundSave(id){
  if(!online())return;const c=find('contracts',id),v=contractValues(c),amount=Number(val('refund-amount'));
  if(c.frozen)return fail('本合同已有退款冻结，请先处理已有申请。');
  if(!Number.isFinite(amount)||amount<=0||amount>Math.max(0,v.cash-v.performed)+.001)return fail('退款金额超出可申请上限。');
  if(val('refund-reason').length<5||!checked('refund-confirm'))return fail('请填写原因并核实合同依据。');
- const x={id:inc('RF'),contract:id,amount:Math.round(amount*100)/100,reason:val('refund-reason'),state:'待审核',time:CLOCK};S.refunds.unshift(x);c.frozen=true;U.rightsTab='合同收退款';audit('提交退款测算申请',id+' / '+money(amount)+' / 未使用权益冻结','rights','退款',x.id);commit('退款申请已记录；未使用权益暂时冻结，母婴照护未自动结束。');
+ const x={id:inc('RF'),contract:id,amount:Math.round(amount*100)/100,reason:val('refund-reason'),state:'待审核',time:CLOCK};S.refunds.unshift(x);c.frozen=true;U.rightsTab='合同收退款';audit('提交退款测算申请',id+' / '+money(amount)+' / 未使用权益冻结','rights','退款',x.id);commit('退款申请已记录，未使用权益暂时冻结。');
 }
 function refundDetail(id){
- const r=find('refunds',id);drawer('退款审核 · '+r.id,`${kv([['合同',r.contract],['金额',money(r.amount,2)],['申请原因',r.reason],['当前状态',r.state]])}<div class="divider"></div>${note('审核通过后保留冻结，资金划转按回执处理。')}${r.state==='待审核'?check('refund-reviewed','财务已核对金额、合同依据与需调整的权益，批准此申请。'):''}`,(['待审核','已审核'].includes(r.state)?btn('撤回申请并解除冻结','refund-withdraw',id,'danger'):'')+(r.state==='待审核'?btn('确认审核','refund-approve',id,'primary','check'):'')+btn('关闭','close'));
+ const r=find('refunds',id);drawer('退款审核 · '+r.id,`${kv([['合同',r.contract],['金额',money(r.amount,2)],['申请原因',r.reason],['当前状态',r.state]])}<div class="divider"></div>${note('审核通过后按回执办理资金划转。')}${r.state==='待审核'?check('refund-reviewed','财务已核对金额、合同依据与需调整的权益，批准此申请。'):''}`,(['待审核','已审核'].includes(r.state)?btn('撤回申请并解除冻结','refund-withdraw',id,'danger'):'')+(r.state==='待审核'?btn('确认审核','refund-approve',id,'primary','check'):'')+btn('关闭','close'));
 }
 function payCalculate(id){
  const p=find('payroll',id);
- if(['已锁定','已支付'].includes(p.state)){toast('快照已锁定，不能重算覆盖；请新建差额调整。',true);return;}
+ if(['已锁定','已支付'].includes(p.state)){toast('快照已锁定，请新建差额调整。',true);return;}
  p.version++;p.snapshot={...payAmount(p,true),version:p.version};p.state='试算完成';p.approvals=[];audit('生成薪酬试算快照',p.id+' / V'+p.version+' / '+money(p.snapshot.total,2),'payroll','薪酬',p.id);save();render();toast('试算快照已生成，下一步进行业务复核。');
 }
 function payEdit(id){
- const p=find('payroll',id);if(!['待试算','试算完成'].includes(p.state))return toast('该快照已进入后续审核，不能直接修改。',true);
- modal('调整待试算奖励参数',`${kv([['人员',ename(p.staff)],['当前奖励',money(p.bonus)],['规则版本','V2026.09']])}<div class="formgrid mt20">${field('已批准奖励（元）',input('pay-bonus',p.bonus,'number','min="0" step="0.01"'))}${field('调整依据',input('pay-reason','','text','placeholder="填写奖励审核依据"'))}</div>${note('保存后旧快照失效，必须重新试算。这里不修改原服务日薪或已付工资。')}`,btn('取消','close')+btn('保存并使旧试算失效','pay-edit-save',id,'primary','check'));
+ const p=find('payroll',id);if(!['待试算','试算完成'].includes(p.state))return toast('该快照已进入审核，请按流程办理。',true);
+ modal('调整待试算奖励参数',`${kv([['人员',ename(p.staff)],['当前奖励',money(p.bonus)],['规则版本','V2026.09']])}<div class="formgrid mt20">${field('已批准奖励（元）',input('pay-bonus',p.bonus,'number','min="0" step="0.01"'))}${field('调整依据',input('pay-reason','','text','placeholder="填写奖励审核依据"'))}</div>${note('保存后需重新试算。')}`,btn('取消','close')+btn('保存并使旧试算失效','pay-edit-save',id,'primary','check'));
 }
 function payApprove(id){
  const p=find('payroll',id),isBusiness=p.state==='试算完成';
@@ -912,29 +912,29 @@ function payReceipt(id){
  modal('核对付款回执',`${note('请核对回执对象、金额与结果后再登记。')}<div class="formgrid mt20">${field('回执编号',input('pay-ref','PAY-'+p.id+'-01'))}${field('回执收款对象',input('pay-recipient',ename(p.staff),'text','readonly'))}${field('回执金额（元）',input('pay-receipt-amount',p.snapshot.total.toFixed(2),'number','step="0.01"'))}${field('回执结果',select('pay-receipt-state',['支付成功','支付失败'],'支付成功'))}</div>${check('pay-receipt-check','已核对回执对象、金额及结果。')}`,btn('取消','close')+btn('保存回执核对结果','pay-receipt-save',id,'primary','check'));
 }
 function payAdjust(id){
- const p=find('payroll',id);modal('新增独立差额调整',`${kv([['关联人员',ename(p.staff)],['原工资状态',p.state],['原快照金额',money(payAmount(p).total,2)]])}<div class="formgrid mt20">${field('调整金额（元，可正可负）',input('adjust-amount','','number','step="0.01"'))}${field('调整类别',select('adjust-type',['漏记实绩','合法扣缴更正','奖励更正','本人申诉核查'],'漏记实绩'))}${field('调整依据与说明',area('adjust-reason'),true)}</div>${note('不改原已锁定工资。调整先进入待审核；不是自动罚款或直接扣薪。')}`,btn('取消','close')+btn('提交独立调整','pay-adjust-save',id,'primary','file'));
+ const p=find('payroll',id);modal('新增独立差额调整',`${kv([['关联人员',ename(p.staff)],['原工资状态',p.state],['原快照金额',money(payAmount(p).total,2)]])}<div class="formgrid mt20">${field('调整金额（元，可正可负）',input('adjust-amount','','number','step="0.01"'))}${field('调整类别',select('adjust-type',['漏记实绩','合法扣缴更正','奖励更正','本人申诉核查'],'漏记实绩'))}${field('调整依据与说明',area('adjust-reason'),true)}</div>${note('调整提交后进入待审核。')}`,btn('取消','close')+btn('提交独立调整','pay-adjust-save',id,'primary','file'));
 }
 function mealReplace(id){
- const x=find('meals',id);if(x.state==='已送达')return toast('已送达餐单不能覆盖，需登记新的餐食问题与后续安排。',true);
+ const x=find('meals',id);if(x.state==='已送达')return toast('餐单已送达，请登记新的餐食问题。',true);
  modal('临时替餐与版本复核',`${kv([['母亲',mtr(x.mother).name],['已登记禁忌',mtr(x.mother).allergens.join('、')||'暂无登记'],['当前菜谱',find('recipes',x.recipe).name],['当前版本','V'+x.version]])}<div class="formgrid mt20">${field('替换菜谱',select('meal-recipe',S.recipes.map(r=>[r.id,r.name]),'R003'))}${field('独立审核人',select('meal-reviewer',nutritionStaff(),'E011'))}${field('替餐理由',area('meal-replace-note','根据本人需求及已登记禁忌调整餐单，重新核对原料与批次。'),true)}</div>${check('meal-reviewed','已审核替换菜谱、已登记禁忌及适用原料批次。')}`,btn('取消','close')+btn('校验并发布餐单新版本','meal-replace-save',id,'primary','utensils'));
 }
 function mealCheck(id){
  const x=find('meals',id),m=mtr(x.mother),r=find('recipes',x.recipe),bad=mealConflict(x);
  if(x.state==='已送达')return drawer('实际配送记录',kv([['母亲 / 房间',m.name+' / '+m.room],['餐单',r.name],['版本 / 批次','V'+x.version+' / '+x.batch],['实际送达',x.deliveredAt||CLOCK],['配送说明',x.deliveryNote||'已核实对象与配送'],['状态',x.state]]));
- modal('配餐与配送前核验',`${kv([['对象',m.name+' / '+m.id],['安排房间',m.room],['本人状态',m.state],['当前餐单',r.name],['原料批次',x.batch+' / V'+x.version],['已登记禁忌',m.allergens.join('、')||'暂无登记']])}<div class="mt16">${bad.length?note('原料冲突：'+bad.join('、')+'。不能通过人工勾选绕过，必须先替餐并重新审核。','error'):note('当前原料表与已登记禁忌未发现冲突。','ok')}</div><div class="formgrid mt20">${field('母亲身份码',input('meal-code','','text',`placeholder="${m.id}"`))}${field('本次动作',select('meal-action',['配餐核验完成','确认实际送达','暂缓配送'],x.state==='已备餐'?'确认实际送达':'配餐核验完成'))}${field('执行人员',select('meal-actor',staffOpts(),'E012'))}${field('执行说明 / 提前配送原因',area('meal-note'))}</div>${check('meal-check-done','已经核对当前母亲、餐单版本、原料批次和实际执行情况。')}`,btn('取消','close')+btn('确认核验结果','meal-check-save',id,'primary','scan'),'请核对母亲身份后再配送。');
+ modal('配餐与配送前核验',`${kv([['对象',m.name+' / '+m.id],['安排房间',m.room],['本人状态',m.state],['当前餐单',r.name],['原料批次',x.batch+' / V'+x.version],['已登记禁忌',m.allergens.join('、')||'暂无登记']])}<div class="mt16">${bad.length?note('原料冲突：'+bad.join('、')+'。请先替餐后再配送。','error'):note('当前原料表与已登记禁忌未发现冲突。','ok')}</div><div class="formgrid mt20">${field('母亲身份码',input('meal-code','','text',`placeholder="${m.id}"`))}${field('本次动作',select('meal-action',['配餐核验完成','确认实际送达','暂缓配送'],x.state==='已备餐'?'确认实际送达':'配餐核验完成'))}${field('执行人员',select('meal-actor',staffOpts(),'E012'))}${field('执行说明 / 提前配送原因',area('meal-note'))}</div>${check('meal-check-done','已核对当前母亲、餐单版本、原料批次和实际执行情况。')}`,btn('取消','close')+btn('确认核验结果','meal-check-save',id,'primary','scan'),'请核对母亲身份。');
 }
 function houseJob(id){
  const j=find('jobs',id);
  if(j.state==='维修中'){return deviceDetail(S.devices.find(d=>d.impact.includes(j.room))?.id||'AC-310');}
  if(j.state==='已验收')return drawer('房务验收记录',kv([['工单',j.id],['房间',j.room],['执行人',ename(j.worker)],['独立验收',ename(j.reviewer)],['完成项目',j.checks.join('、')],['备注',j.note]]));
  if(j.state==='待验收'){
- modal('房务独立验收',`${kv([['房间',j.room],['清洁执行人',ename(j.worker)],['已登记项目',j.checks.join('、')],['执行说明',j.note]])}<div class="formgrid mt20">${field('独立验收人员',select('house-reviewer',staffOpts(s=>s.role==='房务人员'),'E014'))}${field('验收结果',select('house-result',['验收通过','退回整改'],'验收通过'))}${field('现场验收意见',area('house-review-note'),true)}</div>${check('house-verified','已经现场核实用品、环境与设施；验收人不是本次清洁执行人。')}`,btn('取消','close')+btn('提交验收结果','house-review-save',id,'primary','shield'));
+ modal('房务独立验收',`${kv([['房间',j.room],['清洁执行人',ename(j.worker)],['已登记项目',j.checks.join('、')],['执行说明',j.note]])}<div class="formgrid mt20">${field('独立验收人员',select('house-reviewer',staffOpts(s=>s.role==='房务人员'),'E014'))}${field('验收结果',select('house-result',['验收通过','退回整改'],'验收通过'))}${field('现场验收意见',area('house-review-note'),true)}</div>${check('house-verified','已现场核实用品、环境与设施，验收人与执行人不同。')}`,btn('取消','close')+btn('提交验收结果','house-review-save',id,'primary','shield'));
  }else{
- modal('房务执行清单',`${kv([['房间',j.room],['任务',j.type],['当前状态',j.state]])}<div class="mt20">${field('实际执行人',select('house-worker',staffOpts(s=>s.role==='房务人员'),j.worker))}</div><div class="grid2 mt12">${['用品清点','表面清洁','卫生间清洁','设备检查'].map((v,i)=>check('house-item-'+i,v+' 已按SOP完成').replace('type="checkbox"','type="checkbox"'+(j.checks.includes(v)?' checked':''))).join('')}</div>${field('实际执行说明',area('house-work-note',j.note))}`,btn('取消','close')+btn('保存进行中','house-work-save',id+'|draft','','clock')+btn('提交独立验收','house-work-save',id+'|submit','primary','check'));
+ modal('房务执行清单',`${kv([['房间',j.room],['任务',j.type],['当前状态',j.state]])}<div class="mt20">${field('实际执行人',select('house-worker',staffOpts(s=>s.role==='房务人员'),j.worker))}</div><div class="grid2 mt12">${['用品清点','表面清洁','卫生间清洁','设备检查'].map((v,i)=>check('house-item-'+i,v+' 已完成').replace('type="checkbox"','type="checkbox"'+(j.checks.includes(v)?' checked':''))).join('')}</div>${field('实际执行说明',area('house-work-note',j.note))}`,btn('取消','close')+btn('保存进行中','house-work-save',id+'|draft','','clock')+btn('提交独立验收','house-work-save',id+'|submit','primary','check'));
  }
 }
 function houseNew(){
- modal('新建房务任务',`<div class="formgrid">${field('房间',select('job-room',S.rooms.filter(r=>r.state!=='入住中').map(r=>[r.id,r.id+' / '+r.state]),'A311'))}${field('任务类型',select('job-type',['空房检查清洁','深度清洁','维修后清洁'],'空房检查清洁'))}${field('执行人',select('job-worker',staffOpts(s=>s.role==='房务人员'),'E013'))}${field('任务说明',area('job-note'))}</div>${note('此入口处理已释放房间。创建后暂时停止该房间可入住状态，直至独立验收。')}`,btn('取消','close')+btn('创建房务工单','house-create','','primary','plus'));
+ modal('新建房务任务',`<div class="formgrid">${field('房间',select('job-room',S.rooms.filter(r=>r.state!=='入住中').map(r=>[r.id,r.id+' / '+r.state]),'A311'))}${field('任务类型',select('job-type',['空房检查清洁','深度清洁','维修后清洁'],'空房检查清洁'))}${field('执行人',select('job-worker',staffOpts(s=>s.role==='房务人员'),'E013'))}${field('任务说明',area('job-note'))}</div>${note('创建后该房间暂停入住，验收通过后恢复。')}`,btn('取消','close')+btn('创建房务工单','house-create','','primary','plus'));
 }
 function causeResolved(e){
  if(e.cause==='handover')return !S.handovers.some(v=>v.baby===e.subject&&v.state==='待接收')&&!bb(e.subject)?.pending;
@@ -948,62 +948,40 @@ function causeResolved(e){
 function eventOpen(id){
  const e=find('events',id);U.selectedEvent=id;
  const target=e.cause==='handover'?'handover':e.cause==='milk'?'milk':e.cause==='room'||e.cause==='house'?'house':e.cause==='dispatch'?'dispatch':e.cause==='meal'?'meals':'quality';
- drawer('事件处理 · '+e.id,`<div class="between"><h2>${h(e.title)}</h2>${pill(e.level,e.level==='优先'?'red':'orange')}</div><p class="small muted mt8">${e.where} · ${e.time} · ${ename(e.owner)}</p><div class="mt16">${pill(e.state)}</div><div class="divider"></div><p class="small">${h(e.detail)}</p>${e.cause?`<div class="mt16">${note(causeResolved(e)?'关联业务条件已满足，可填写处置结果并进入独立复核。':'关联业务仍未解决，请先到对应工作台处理。',causeResolved(e)?'ok':'warn')}</div><div class="mt12">${btn('处理关联业务','go',target,'full','arrow')}</div>`:''}<div class="divider"></div><h3>已记录处理措施</h3><div class="mt12">${e.actions.length?e.actions.map(a=>`<div class="softbox mt8"><b class="small">${ename(a.actor)} · ${a.time}</b><p class="small mt8">${h(a.note)}</p></div>`).join(''):'<p class="small muted">尚未登记实际措施。</p>'}</div>${e.state==='已闭环'?`<div class="note ok mt16">${ico('checkcircle')}独立复核：${ename(e.reviewedBy)} · ${h(e.reviewNote)}</div>`:''}`,
+ drawer('事件处理 · '+e.id,`<div class="between"><h2>${h(e.title)}</h2>${pill(e.level,e.level==='优先'?'red':'orange')}</div><p class="small muted mt8">${e.where} · ${e.time} · ${ename(e.owner)}</p><div class="mt16">${pill(e.state)}</div><div class="divider"></div><p class="small">${h(e.detail)}</p>${e.cause?`<div class="mt16">${note(causeResolved(e)?'关联事项已处理，可登记处置并复核。':'请先处理关联事项。',causeResolved(e)?'ok':'warn')}</div><div class="mt12">${btn('处理关联业务','go',target,'full','arrow')}</div>`:''}<div class="divider"></div><h3>已记录处理措施</h3><div class="mt12">${e.actions.length?e.actions.map(a=>`<div class="softbox mt8"><b class="small">${ename(a.actor)} · ${a.time}</b><p class="small mt8">${h(a.note)}</p></div>`).join(''):'<p class="small muted">尚未登记实际措施。</p>'}</div>${e.state==='已闭环'?`<div class="note ok mt16">${ico('checkcircle')}独立复核：${ename(e.reviewedBy)} · ${h(e.reviewNote)}</div>`:''}`,
  (e.state==='待响应'?btn('接单并跟进','event-accept',id,'primary','check'):'')+(e.state==='处理中'||e.state==='待响应'?btn('填写处理措施','event-measure',id,'primary','file'):'')+(e.state==='待复核'?btn('独立复核','event-review',id,'primary','shield'):'')+btn('关闭','close'));
 }
 function eventMeasure(id){
- const e=find('events',id);modal('登记处理措施',`${kv([['事件',e.title],['责任人',ename(e.owner)],['关联条件',causeResolved(e)?'已满足':'仍未解决，不能关闭']])}<div class="formgrid mt20">${field('实际处理人',select('event-actor',staffOpts(),e.owner))}${field('处理结果',select('event-result',['持续跟进','提交独立复核'],causeResolved(e)?'提交独立复核':'持续跟进'))}${field('实际措施 / 证据说明',area('event-measure-note'),true)}</div>`,btn('取消','close')+btn('保存处理措施','event-measure-save',id,'primary','check'));
+ const e=find('events',id);modal('登记处理措施',`${kv([['事件',e.title],['责任人',ename(e.owner)],['关联条件',causeResolved(e)?'已处理':'仍未解决']])}<div class="formgrid mt20">${field('实际处理人',select('event-actor',staffOpts(),e.owner))}${field('处理结果',select('event-result',['持续跟进','提交独立复核'],causeResolved(e)?'提交独立复核':'持续跟进'))}${field('实际措施 / 证据说明',area('event-measure-note'),true)}</div>`,btn('取消','close')+btn('保存处理措施','event-measure-save',id,'primary','check'));
 }
 function eventReview(id){
- const e=find('events',id);modal('事件独立复核',`${note(causeResolved(e)?'关联业务条件已满足；仍需独立核实实际处置。':'关联业务尚未解决，不能仅点击关单。',causeResolved(e)?'ok':'error')}<div class="formgrid mt20">${field('独立复核人',select('event-reviewer',staffOpts(),e.owner==='E003'?'E004':'E003'))}${field('复核结果',select('event-review-result',['复核通过并闭环','退回继续处理'],'复核通过并闭环'))}${field('复核意见',area('event-review-note'),true)}</div>${check('event-review-checked','已独立核对处理结果，复核人不是本次处理人。')}`,btn('取消','close')+btn('确认复核结果','event-review-save',id,'primary','shield'));
+ const e=find('events',id);modal('事件独立复核',`${note(causeResolved(e)?'关联事项已处理，请独立核实实际处置。':'请先处理关联事项后再复核。',causeResolved(e)?'ok':'error')}<div class="formgrid mt20">${field('独立复核人',select('event-reviewer',staffOpts(),e.owner==='E003'?'E004':'E003'))}${field('复核结果',select('event-review-result',['复核通过并闭环','退回继续处理'],'复核通过并闭环'))}${field('复核意见',area('event-review-note'),true)}</div>${check('event-review-checked','已核对处理结果，复核人与处理人不同。')}`,btn('取消','close')+btn('确认复核结果','event-review-save',id,'primary','shield'));
 }
 function eventNew(subjectId=''){
- modal('内部异常 / 服务问题上报',`<div class="formgrid">${field('事件标题',input('ev-title'))}${field('事件类别',select('ev-kind',['照护协同','服务请求','餐食','设施','房务','资源','品质'],'照护协同'))}${field('关联对象',select('ev-subject',[['','无特定对象'],...S.mothers.map(m=>[m.id,m.name+' / '+m.room]),...S.babies.map(b=>[b.id,b.name+' / '+b.id])],subjectId))}${field('位置 / 区域',input('ev-where',subjectMother(subjectId)?.room||'3F 护理站'))}${field('优先级',select('ev-level',['普通','优先'],'普通'))}${field('责任人',select('ev-owner',staffOpts(),'E002'))}${field('客观情况与已采取措施',area('ev-detail'),true)}</div>${note('涉及紧急情况先进行现场处置和必要联络，再补充系统记录。')}`,btn('取消','close')+btn('上报并分派','event-create','','primary','alert'));
+ modal('内部异常 / 服务问题上报',`<div class="formgrid">${field('事件标题',input('ev-title'))}${field('事件类别',select('ev-kind',['照护协同','服务请求','餐食','设施','房务','资源','品质'],'照护协同'))}${field('关联对象',select('ev-subject',[['','无特定对象'],...S.mothers.map(m=>[m.id,m.name+' / '+m.room]),...S.babies.map(b=>[b.id,b.name+' / '+b.id])],subjectId))}${field('位置 / 区域',input('ev-where',subjectMother(subjectId)?.room||'3F 护理站'))}${field('优先级',select('ev-level',['普通','优先'],'普通'))}${field('责任人',select('ev-owner',staffOpts(),'E002'))}${field('客观情况与已采取措施',area('ev-detail'),true)}</div>`,btn('取消','close')+btn('上报并分派','event-create','','primary','alert'));
 }
 function inspectionModal(){
- modal('开展内部品质巡检',`<div class="formgrid">${field('巡检类型',select('inspect-type',['客服每日巡房','值班经理巡检','品控抽查'],'品控抽查'))}${field('巡检位置',input('inspect-where','3F 公共区'))}${field('检查人员',select('inspect-actor',staffOpts(),'E003'))}${field('检查结果',select('inspect-result',['全部符合检查要求','发现需整改问题'],'发现需整改问题'))}${field('实际检查内容及问题',area('inspect-note'),true)}</div>${check('inspect-done','已按实际巡检范围完成检查，不以定位打卡替代检查事实。')}`,btn('取消','close')+btn('保存巡检并生成必要整改','inspection-save','','primary','clipboard'));
+ modal('开展内部品质巡检',`<div class="formgrid">${field('巡检类型',select('inspect-type',['客服每日巡房','值班经理巡检','品控抽查'],'品控抽查'))}${field('巡检位置',input('inspect-where','3F 公共区'))}${field('检查人员',select('inspect-actor',staffOpts(),'E003'))}${field('检查结果',select('inspect-result',['全部符合检查要求','发现需整改问题'],'发现需整改问题'))}${field('实际检查内容及问题',area('inspect-note'),true)}</div>${check('inspect-done','已按实际巡检范围完成检查。')}`,btn('取消','close')+btn('保存巡检并生成必要整改','inspection-save','','primary','clipboard'));
 }
 function deviceDetail(id){
  const d=find('devices',id);if(!d)return toast('未找到关联设备。',true);
- drawer('设备与关联影响',`<div class="row"><span class="listico ${d.state==='在线'?'blue':'orange'}">${ico('activity')}</span><div><h2>${h(d.name)}</h2><p class="small muted">${d.id} · ${h(d.location)}</p></div></div><div class="divider"></div>${kv([['状态',pill(d.state),true],['当前显示',d.reading],['最后接收',d.last],['数据质量',d.quality],['责任范围',d.type==='冷链'?'设备恢复与奶源处置分开':'设备维护与现场复核']])}<div class="divider"></div><h3 class="mb16">关联影响对象</h3>${d.impact.length?d.impact.map(id=>`<div class="resource-chip mt8"><b class="mono">${id}</b><span class="grow">${find('milk',id)?pill(find('milk',id).state):find('rooms',id)?pill(find('rooms',id).state):''}</span>${lnk('查看',find('milk',id)?'milk-detail':'house-room',id)}</div>`).join(''):'<p class="small muted">当前没有待处理影响对象</p>'}<div class="mt20">${note('设备恢复后，受影响奶瓶仍须按 SOP 独立处置，不会自动解除隔离。')}</div>`,(d.state!=='在线'?btn('登记复机与独立核验','device-restore',d.id,'primary','tool'):btn('登记设备故障','device-report-one',d.id,'danger','alert'))+btn('关闭','close'));
+ drawer('设备与关联影响',`<div class="row"><span class="listico ${d.state==='在线'?'blue':'orange'}">${ico('activity')}</span><div><h2>${h(d.name)}</h2><p class="small muted">${d.id} · ${h(d.location)}</p></div></div><div class="divider"></div>${kv([['状态',pill(d.state),true],['当前显示',d.reading],['最后接收',d.last],['数据质量',d.quality],['责任范围',d.type==='冷链'?'设备与奶瓶分别处理':'设备维护与现场复核']])}<div class="divider"></div><h3 class="mb16">关联影响对象</h3>${d.impact.length?d.impact.map(id=>`<div class="resource-chip mt8"><b class="mono">${id}</b><span class="grow">${find('milk',id)?pill(find('milk',id).state):find('rooms',id)?pill(find('rooms',id).state):''}</span>${lnk('查看',find('milk',id)?'milk-detail':'house-room',id)}</div>`).join(''):'<p class="small muted">当前没有待处理影响对象</p>'}<div class="mt20">${note('设备恢复后，请继续处理受影响奶瓶。')}</div>`,(d.state!=='在线'?btn('登记复机与独立核验','device-restore',d.id,'primary','tool'):btn('登记设备故障','device-report-one',d.id,'danger','alert'))+btn('关闭','close'));
 }
 function deviceRestore(id){
- const d=find('devices',id);modal('设备复机独立核验',`${kv([['设备',d.name+' / '+id],['当前状态',d.state],['后续要求',d.type==='冷链'?'仍需逐瓶处置':'仍需空间清洁与独立验收']])}<div class="formgrid mt20">${field('修复 / 检查人员',select('device-worker',staffOpts(),'E014'))}${field('独立复核人员',select('device-reviewer',staffOpts(),'E015'))}${field('恢复后现场读数 / 状态',input('device-reading',d.type==='冷链'?'4.0℃ · 人工复核':'功能恢复 · 人工复核'))}${field('检查依据与复机说明',area('device-evidence'))}</div>${check('device-done','已完成故障排查及独立复核，确认设备恢复；关联物品另行复核。')}`,btn('取消','close')+btn('确认设备恢复','device-restore-save',id,'primary','check'));
+ const d=find('devices',id);modal('设备复机独立核验',`${kv([['设备',d.name+' / '+id],['当前状态',d.state],['后续要求',d.type==='冷链'?'请继续处置关联奶瓶':'请继续安排清洁与验收']])}<div class="formgrid mt20">${field('修复 / 检查人员',select('device-worker',staffOpts(),'E014'))}${field('独立复核人员',select('device-reviewer',staffOpts(),'E015'))}${field('恢复后现场读数 / 状态',input('device-reading',d.type==='冷链'?'4.0℃ · 人工复核':'功能恢复 · 人工复核'))}${field('检查依据与复机说明',area('device-evidence'))}</div>${check('device-done','已完成故障排查及独立复核，确认设备恢复。')}`,btn('取消','close')+btn('确认设备恢复','device-restore-save',id,'primary','check'));
 }
 function deviceReport(id=''){
- modal('设备故障登记',`<div class="formgrid">${field('设备',select('device-report-id',S.devices.map(d=>[d.id,d.name+' / '+d.id]),id||'FR-02'))}${field('故障状态',select('device-report-state',['数据中断','维修中'],'数据中断'))}${field('实际故障情况',area('device-report-note'),true)}</div>${note('冷链故障会同步隔离当前关联可用奶瓶；安全现场响应另按预案执行。')}`,btn('取消','close')+btn('登记故障与影响','device-report-save','','primary','alert'));
+ modal('设备故障登记',`<div class="formgrid">${field('设备',select('device-report-id',S.devices.map(d=>[d.id,d.name+' / '+d.id]),id||'FR-02'))}${field('故障状态',select('device-report-state',['数据中断','维修中'],'数据中断'))}${field('实际故障情况',area('device-report-note'),true)}</div>${note('登记后，关联可用奶瓶将进入隔离。')}`,btn('取消','close')+btn('登记故障与影响','device-report-save','','primary','alert'));
 }
 
 
 
 function confirmAction(title,text,name,id='',button='确认'){
- modal(title,`${note(text,'warn')}${check('action-confirm','已经核实本次操作及影响范围。')}`,btn('取消','close')+btn(button,name,id,'primary','check'));
+ modal(title,`${note(text,'warn')}${check('action-confirm','已确认本次操作。')}`,btn('取消','close')+btn(button,name,id,'primary','check'));
 }
-function boundary(id=U.page){return;
- const groups={
- dashboard:['经营、任务与异常记录','聚合指标、内部快捷入口'],
- twin:['楼层、房间、母婴主档及业务事件','交互式二维底图、可信状态投影、跨页跳转'],
- residents:['母亲/婴儿独立档案、计划与普通照护记录','家庭关联、个案聚合、身份状态控制'],
- care:['计划、普通记录及异常申请','高频任务工作台、执行去重与事实同步'],
- handover:['托管申请、交班记录与审批','独立扫码、责任状态机与双向签收'],
- feeding:['奶源资料、喂养记录及异常','婴儿与奶瓶精确匹配、独立复核、防重复使用'],
- milk:['来源、批次、隔离处置与复核','奶瓶状态事务、设备影响追溯'],
- rooms:['房间、合同、入住及变更申请','排房日历、容量及并发冲突校验、换房事务'],
- dispatch:['资质、派单、排班、请假申请','跨场景时间冲突、资源占用、人员准备联动'],
- appointments:['服务目录、个体计划及预约申请','人员/场地/时间联合校验、预留与核销分离'],
- rights:['合同、变更及退款审批','服务分段、权益成对转换、余额与历史流水'],
- meals:['饮食约束、食谱、餐单与替餐审批','跨原料禁忌校验、配送身份核验'],
- house:['清洁SOP、房务工单与独立验收','房态联动、维修/清洁/可入住控制'],
- quality:['巡检、整改、投诉与复核流程','关联原因检查、事件汇聚和任务导航'],
- equipment:['设备、测点、报修与复机记录','设备读模型、离线质量标识及影响链'],
- payroll:['实绩、规则、审核、申诉及付款授权','版本快照、分段试算、锁定及防重复付款'],
- analysis:['正式指标字典与基础报表','跨域聚合、履约/现金/成本分项解释'],
- system:['授权申请、配置与同步异常工单','接口鉴权、幂等、重试、对账及审计']
- },x=groups[id];
- drawer('模块说明',`${kv([['当前工作区',MODULES.find(m=>m.id===id)?.name||id],['简道云维护',x?.[0]||'主档、业务事实及审批'],['定制开发',x?.[1]||'复杂计算与专用界面']])}<div class="divider"></div><h3 class="mb16">本模块覆盖</h3><p class="small">页面切换、表单校验、状态联动、对象关联、关键正反向流程、导出与保存。</p><h3 class="mt20 mb16">协同范围</h3><p class="small">档案、审批与主数据由简道云维护；本页处理现场核验、资源占用与状态联动。</p><div class="mt20">${note('切换角色后按岗位显示对应工作区。档案与审批继续由简道云承载。','warn')}</div>`,btn('关闭','close'),'档案与审批由简道云承载，本页处理现场作业。');
-}
+function boundary(){return;}
 function settings(){
- modal('系统设置',`${note('业务日期为 2026-09-16 10:30。')}<div class="grid2 mt20"><div class="softbox"><h3>本地数据</h3><p class="small muted mt8">在支持的浏览器中自动保存；存储不可用时退化为当前页面内存。</p><div class="mt12">${btn('导出状态快照','state-export','','','download')}</div></div><div class="softbox"><h3>离线暂存</h3><p class="small muted mt8">普通照护记录可暂存；身份核验、占用和结算操作暂停提交。</p><div class="mt12">${btn(U.offline?'恢复连接':'切换为离线','offline','','','wifi')}</div></div></div><div class="divider"></div><h3>恢复初始数据</h3><p class="small muted mt8">清除本地改动，恢复初始业务数据。</p><div class="mt12">${btn('恢复初始数据','reset-confirm','','danger','refresh')}</div>`,btn('关闭','close'),'系统设置');
+ modal('系统设置',`<div class="grid2"><div class="softbox"><h3>本机数据</h3><p class="small muted mt8">浏览器会保存当前业务数据。</p><div class="mt12">${btn('导出状态快照','state-export','','','download')}</div></div><div class="softbox"><h3>离线暂存</h3><p class="small muted mt8">网络中断时，普通照护记录可暂存。</p><div class="mt12">${btn(U.offline?'恢复连接':'切换为离线','offline','','','wifi')}</div></div></div><div class="divider"></div><h3>重新载入</h3><p class="small muted mt8">清除本机改动并重新载入业务数据。</p><div class="mt12">${btn('重新载入','reset-confirm','','danger','refresh')}</div>`,btn('关闭','close'));
 }
 function notificationDrawer(){
  drawer('通知与跨部门待办',`${S.events.filter(e=>e.state!=='已闭环').map(e=>`<div class="listrow"><span class="listico ${e.level==='优先'?'pink':'orange'}">${ico('alert')}</span><div class="grow"><h4>${h(e.title)}</h4><p class="tiny muted">${h(e.where)} · ${h(e.state)} · ${ename(e.owner)}</p></div>${lnk('处理','event',e.id)}</div>`).join('')}<div class="divider"></div><h3>最近业务活动</h3>${S.activity.slice(0,8).map(x=>`<div class="listrow"><div class="grow"><h4>${h(x.title)}</h4><p class="tiny muted">${h(x.detail||'')}</p></div><span class="tiny muted">${h(x.time)}</span></div>`).join('')}`,btn('进入异常中心','go','quality','primary')+btn('关闭','close'));
@@ -1028,21 +1006,21 @@ function searchResults(query){
  return list.length?list.map(x=>`<button class="commanditem" ${act(x.a,x.id)}>${ico(x.i)}<span class="grow"><b>${h(x.n)}</b><small>${h(x.s)}</small></span>${ico('arrow')}</button>`).join(''):empty('没有找到匹配对象','可以输入“A301”“林小满”“FR”或业务单号。');
 }
 const TOUR=[
- ['dashboard','先看当前运营','待办、在所人数和事件来自同一组对象。你可以从首页直接进入对应业务。'],
- ['twin','空间不是一张静态图','切换楼层、点击房间，查看母婴及当前责任。位置来源和最后确认时间不会被隐藏。'],
- ['residents','一母多婴，独立管理','林芊芊的两位宝宝分别有身份、喂养和照护责任；未入所宝宝不会生成在所实绩。'],
- ['rooms','排房同时考虑人、房和合同','选中韩舒的未来排房，先完成人员调度，再提交锁房。换房走独立的实际交接。'],
- ['feeding','完成一次关键核验','先选“同母错配”查看拦截，再选“正常核验”，完成后填写独立复核与实际喂养。'],
- ['handover','送交后需独立接收','待接收单由指定接收人核对宝宝码后，才更新照护责任。'],
- ['payroll','试算、审核、锁定分开','选择王丽艳：重新试算 → 业务复核 → 财务终审 → 锁定 → 核实付款回执。'],
- ['quality','异常要解决原因才能关单','冷链恢复后，隔离奶源仍需逐一处置。关闭前完成独立复核。']
+ ['dashboard','今日运营','查看在所人数、待办和未结事项，从首页进入对应业务。'],
+ ['twin','楼层与房间','切换楼层、点选房间，查看在住母婴与当前责任人。'],
+ ['residents','母婴档案','查看母亲与宝宝档案、照护记录和待办。'],
+ ['rooms','入住排房','查看房间排期，办理排房、换房和延住。'],
+ ['feeding','喂养核验','核对宝宝与奶瓶后，填写复核人与实际喂养量。'],
+ ['handover','托管接还','待接收单由指定接收人核对后，更新照护责任。'],
+ ['payroll','薪酬结算','按试算、复核、终审、锁定、回执的顺序办理。'],
+ ['quality','异常闭环','处理关联事项后，完成独立复核再关单。']
 ];
 function renderTour(){
  const el=$('#tour');if(!el)return;if(U.tour===null){el.innerHTML='';return;}
- const t=TOUR[U.tour];el.innerHTML=`<div class="walk"><div class="between"><span class="pill blue">操作指引 ${U.tour+1} / ${TOUR.length}</span><button class="iconbtn" aria-label="关闭导览" ${act('tour-close')}>${ico('close')}</button></div><h3 class="mt12">${t[1]}</h3><p class="small muted mt8">${t[2]}</p><div class="between mt16">${btn('上一步','tour-prev','','sm')}${btn(U.tour===TOUR.length-1?'完成':'下一步','tour-next','','primary sm','arrow')}</div></div>`;
+ const t=TOUR[U.tour];el.innerHTML=`<div class="walk"><div class="between"><span class="pill blue">页面导览 ${U.tour+1} / ${TOUR.length}</span><button class="iconbtn" aria-label="关闭导览" ${act('tour-close')}>${ico('close')}</button></div><h3 class="mt12">${t[1]}</h3><p class="small muted mt8">${t[2]}</p><div class="between mt16">${btn('上一步','tour-prev','','sm')}${btn(U.tour===TOUR.length-1?'完成':'下一步','tour-next','','primary sm','arrow')}</div></div>`;
 }
 function simModal(){
- modal('入住容量测算',`<div class="formgrid">${field('新增母亲人数',input('sim-mothers',2,'number','min="0" max="30"'))}${field('新增宝宝人数',input('sim-babies',3,'number','min="0" max="60"'))}${field('临时停用空房数量',input('sim-rooms',0,'number','min="0" max="24"'))}${field('新增可支援照护人员',input('sim-staff',0,'number','min="0" max="20"'))}</div><div class="mt20">${btn('开始测算','sim-run','','primary','chart')}</div><div id="sim-result" class="mt20"></div>${note('按空房、额定容量与在岗人员测算，结果用于排房参考。')}`,btn('关闭','close'),'测算不写入实际占用。',true);
+ modal('入住容量测算',`<div class="formgrid">${field('新增母亲人数',input('sim-mothers',2,'number','min="0" max="30"'))}${field('新增宝宝人数',input('sim-babies',3,'number','min="0" max="60"'))}${field('临时停用空房数量',input('sim-rooms',0,'number','min="0" max="24"'))}${field('新增可支援照护人员',input('sim-staff',0,'number','min="0" max="20"'))}</div><div class="mt20">${btn('开始测算','sim-run','','primary','chart')}</div><div id="sim-result" class="mt20"></div>${note('按空房、容量与在岗人员测算。')}`,btn('关闭','close'),'结果供排房参考。',true);
 }
 function simRun(){
  const n=Number(val('sim-mothers')),b=Number(val('sim-babies')),down=Number(val('sim-rooms')),staff=Number(val('sim-staff'));
@@ -1050,7 +1028,7 @@ function simRun(){
  if(b<n)return fail('此情景按每位母亲至少一位婴儿测算，宝宝人数不能小于母亲人数。');
  const avail=S.rooms.filter(r=>r.state==='可入住').sort((a,b)=>b.capacity-a.capacity).slice(down);
  const cap=avail.slice(0,n).reduce((a,r)=>a+r.capacity,0),people=S.staff.filter(s=>s.valid&&s.available&&s.skills.includes('母婴照护')&&s.shift!=='休息').length+staff;
- $('#sim-result').innerHTML=`<div class="grid3"><div class="metric"><label>空房数量缺口</label><b>${Math.max(0,n-avail.length)}</b></div><div class="metric"><label>婴儿位缺口</label><b>${Math.max(0,b-cap)}</b></div><div class="metric"><label>专属服务人员缺口</label><b>${Math.max(0,n-people)}</b></div></div><div class="mt16">${note(n<=avail.length&&b<=cap&&n<=people?'数量层面可继续编排。具体日期、资质、双胎照护与首班仍须逐单核验。':'当前假设有资源缺口：需要调整房型、支援人员或入住安排，不应直接确认承接。',n<=avail.length&&b<=cap&&n<=people?'ok':'warn')}</div><p class="tiny muted mt12">本轮未写入房间占用、员工排期或合同权益。</p>`;
+ $('#sim-result').innerHTML=`<div class="grid3"><div class="metric"><label>空房数量缺口</label><b>${Math.max(0,n-avail.length)}</b></div><div class="metric"><label>婴儿位缺口</label><b>${Math.max(0,b-cap)}</b></div><div class="metric"><label>专属服务人员缺口</label><b>${Math.max(0,n-people)}</b></div></div><div class="mt16">${note(n<=avail.length&&b<=cap&&n<=people?'房量与人员数量可承接，请继续核验具体日期与人员。':'当前资源不足，请调整房型、人员或入住安排。',n<=avail.length&&b<=cap&&n<=people?'ok':'warn')}</div>`;
 }
 function handleChange(key,value){
  if(key==='role'){U.role=value;if(!allowed(U.page))U.page='dashboard';clearScan();close();render();toast('已切换当前角色。');return;}
@@ -1086,8 +1064,8 @@ function handleAction(a,id='',el=null){
  case 'boundary':return boundary(id||U.page);
  case 'demo-settings':return settings();
  case 'state-export':return exportFile('yuehu_v3_state.json',JSON.stringify({notice:'业务数据导出',exported:new Date().toISOString(),state:S},null,2),'application/json');
- case 'reset-confirm':return confirmAction('恢复初始数据','将清除本地改动，恢复初始业务数据。','reset-save','','确认恢复');
- case 'reset-save':if(!checked('action-confirm'))return fail('请确认重置影响。');S=seed();U.page='dashboard';U.mother='M001';U.baby='B001';U.contract='C001';U.room='A301';U.floor=3;U.pay='PY001';U.feedBaby='B001';U.selectedBooking='BK001';U.request='REQ001';U.offline=false;U.tour=null;clearScan();return commit('已经恢复初始数据数据。');
+ case 'reset-confirm':return confirmAction('重新载入','将清除本机改动并重新载入业务数据。','reset-save','','确认重新载入');
+ case 'reset-save':if(!checked('action-confirm'))return fail('请确认本次操作。');S=seed();U.page='dashboard';U.mother='M001';U.baby='B001';U.contract='C001';U.room='A301';U.floor=3;U.pay='PY001';U.feedBaby='B001';U.selectedBooking='BK001';U.request='REQ001';U.offline=false;U.tour=null;clearScan();return commit('已重新载入业务数据。');
  case 'offline':U.offline=!U.offline;clearScan();close();render();return toast(U.offline?'已进入离线模式，关键操作暂停确认。':'网络已恢复，离线草稿可逐条审核补录。');
  case 'tour':U.tour=0;return go(TOUR[0][0]);
  case 'tour-close':U.tour=null;return renderTour();
@@ -1116,7 +1094,7 @@ function handleAction(a,id='',el=null){
  case 'mother-state-save':{
   if(!online())return;const m=mtr(id);if(!checked('state-confirm')||val('state-note').length<5)return fail('请填写真实情况并核实照护安排。');
   m.state=m.state==='外出'?'在所':'外出';S.records.unshift({id:inc('REC'),subject:id,type:'母亲出入',note:val('state-note'),actor:val('state-actor'),time:CLOCK,source:'独立对象出入核验'});
-  audit('母亲状态独立更新',m.name+' / '+m.state+' / 婴儿责任未改变','residents','出入',id);return commit('母亲状态已更新，婴儿服务和房间占用保持原状。');
+  audit('母亲状态独立更新',m.name+' / '+m.state,'residents','出入',id);return commit('母亲状态已更新。');
  }
  case 'booking-mother':{
   const b=S.bookings.find(b=>b.mother===id&&b.state==='入住中');if(!b)return toast('此对象暂无在住订单。',true);U.selectedBooking=b.id;return go('rooms');
@@ -1138,13 +1116,13 @@ function handleAction(a,id='',el=null){
  case 'booking-lock-save':{
   if(!online())return;const b=find('bookings',id);if(b.state!=='待审批'||b.submittedVersion!==b.version)return fail('不是当前已提交版本，不能锁定。');
   const err=bookingValidate(b);if(err)return fail(err);if(!checked('lock-approved'))return fail('请确认审批已通过。');
-  b.state='已锁房';b.lockedAt=CLOCK;find('contracts',b.contract).room=b.room;audit('已确认完整区间锁房',b.id+' / '+b.room,'rooms','排房',b.id);return commit('锁房成功；未来预订不改变房间现在的物理状态。');
+  b.state='已锁房';b.lockedAt=CLOCK;find('contracts',b.contract).room=b.room;audit('已确认完整区间锁房',b.id+' / '+b.room,'rooms','排房',b.id);return commit('锁房成功。');
  }
- case 'booking-cancel':return confirmAction('取消未来排房','取消后释放本条未来占用，不自动取消合同或退款。','booking-cancel-save',id,'取消此排房');
+ case 'booking-cancel':return confirmAction('取消未来排房','取消后释放本条未来占用。合同与款项需另行处理。','booking-cancel-save',id,'取消此排房');
  case 'booking-cancel-save':{
   if(!online())return;const b=find('bookings',id);if(!checked('action-confirm'))return fail('请确认取消范围。');
   if(['入住中','已结束','已取消'].includes(b.state))return fail('已发生或已经取消的入住不能从此入口取消。');
-  b.state='已取消';audit('取消未来排房',id+' / '+b.customer,'rooms','排房',id);return commit('未来占用已释放；合同和款项没有被自动取消。');
+  b.state='已取消';audit('取消未来排房',id+' / '+b.customer,'rooms','排房',id);return commit('未来占用已释放。');
  }
  case 'room-move':return roomMove(id);
  case 'room-move-save':return roomMoveSave(id);
@@ -1157,7 +1135,7 @@ function handleAction(a,id='',el=null){
   const end=dayAdd(b.end.slice(0,10),n)+b.end.slice(10),err=bookingValidate({...b,end});if(err)return fail(err);
   b.end=end;b[usedKey]=(b[usedKey]||0)+n;b.version++;c.end=end.slice(0,10);if(mtr(b.mother))mtr(b.mother).endDate=c.end;
   S.rightsLog.unshift({id:inc('RT'),contract:c.id,type:'延住排程预留',from:val('ext-source')+' '+n+'天',to:'排房延长 '+n+'天',state:'已安排未履约',time:CLOCK,value:0,reason:val('ext-reason')});
-  audit('延住资源校验完成',b.customer+' / 新离所 '+end,'rooms','延住',b.id);return commit('已调整未来离所与权益安排；尚未将未来服务记为已履约。');
+  audit('延住资源校验完成',b.customer+' / 新离所 '+end,'rooms','延住',b.id);return commit('已调整离所日期与权益安排。');
  }
  case 'house-room':{
   const j=S.jobs.find(j=>j.room===id&&j.state!=='已验收');if(j)return houseJob(j.id);const r=find('rooms',id);return drawer('房间周转状态',kv([['房间',id],['状态',r?.state||'未找到'],['当前待办','无进行中的房务工单']]),btn('房务工作台','go','house','primary'));
@@ -1179,11 +1157,11 @@ function handleAction(a,id='',el=null){
  case 'shift-edit-save':{
   if(!online())return;const s=emp(U.shiftStaff),n=U.shiftIndex,value=val('roster-shift');
   if(val('roster-reason').length<5)return fail('请填写至少5个字的调整依据。');
-  if(n===0&&value==='休息'&&S.babies.some(b=>b.state==='在所'&&b.custody===s.id))return fail('此人当前仍有在管宝宝，先完成实际责任接替，不能直接改为休息。');
-  s.schedule[n]=value;S.rosterPublished=false;audit('调整班表草案',s.name+' / '+dayAdd(DEMO_DAY,n)+' / '+value,'dispatch','班表',s.id);return commit('班表草案已更新，需要重新发布。实际考勤未改变。');
+  if(n===0&&value==='休息'&&S.babies.some(b=>b.state==='在所'&&b.custody===s.id))return fail('此人当前仍有在管宝宝，请先完成接还再改休息。');
+  s.schedule[n]=value;S.rosterPublished=false;audit('调整班表草案',s.name+' / '+dayAdd(DEMO_DAY,n)+' / '+value,'dispatch','班表',s.id);return commit('班表草案已更新，请重新发布。');
  }
  case 'roster-publish':return confirmAction('发布内部班表','发布当前七天班表版本，人员按该版本执行。','roster-save','','确认发布');
- case 'roster-save':if(!online())return;if(!checked('action-confirm'))return fail('请确认审批与班表范围。');S.rosterPublished=true;S.rosterVersion=(S.rosterVersion||0)+1;audit('发布班表版本','版本 '+S.rosterVersion+' / 不生成实际考勤','dispatch','班表');return commit('新班表已发布，实际实绩需另行核定。');
+ case 'roster-save':if(!online())return;if(!checked('action-confirm'))return fail('请确认审批与班表范围。');S.rosterPublished=true;S.rosterVersion=(S.rosterVersion||0)+1;audit('发布班表版本','版本 '+S.rosterVersion,'dispatch','班表');return commit('新班表已发布。');
  case 'care-filter':U.careFilter=id;return render();
  case 'care-view':U.careView=id;return render();
  case 'task':return taskModal(id);
@@ -1195,7 +1173,7 @@ function handleAction(a,id='',el=null){
  case 'handover-open':return handoverOpen(id);
  case 'handover-send':return handoverSend();
  case 'handover-accept':return handoverAccept(id);
- case 'handover-cancel':return modal('取消未接收的交接',`${note('取消登记不会自动将宝宝移回原房间，也不转移当前责任；需要现场核实实际位置。','warn')}${field('取消原因与实际位置说明',area('cancel-ho-note'))}${check('cancel-ho-confirm','已由当前责任人核实宝宝实际位置及后续照护。')}`,btn('返回','close')+btn('确认取消','handover-cancel-save',id,'danger'));
+ case 'handover-cancel':return modal('取消未接收的交接',`${note('请现场核实宝宝实际位置后再取消。','warn')}${field('取消原因与实际位置说明',area('cancel-ho-note'))}${check('cancel-ho-confirm','已由当前责任人核实宝宝实际位置及后续照护。')}`,btn('返回','close')+btn('确认取消','handover-cancel-save',id,'danger'));
  case 'handover-cancel-save':{
   if(!online())return;let v=find('handovers',id),b=bb(v.baby);if(v.state!=='待接收')return fail('交接当前不是待接收状态。');
   if(val('cancel-ho-note').length<5||!checked('cancel-ho-confirm'))return fail('请填写现场核实与取消说明。');
@@ -1221,8 +1199,8 @@ function handleAction(a,id='',el=null){
   if(!online())return;const code=val('milk-code').toUpperCase(),b=bb(val('milk-baby')),d=find('devices',val('milk-device')),volume=Number(val('milk-volume')),deadline=val('milk-deadline');
   if(!/^[A-Z0-9-]{3,40}$/.test(code)||S.milk.some(x=>x.id===code))return fail('请输入唯一的英文字母/数字/短横线奶瓶编码。');
   if(!b||b.state!=='在所'||!Number.isInteger(volume)||volume<=0||volume>1000)return fail('请核对在所婴儿与1–1000mL的整数登记量。');
-  if(!deadline||dateNum(deadline)<=now()||!val('milk-batch')||!checked('milk-sop'))return fail('请填写来源批次、未来的奶瓶使用截止，并核对适用SOP。');
-  S.milk.push({id:code,baby:b.id,mother:b.mother,volume,source:val('milk-source'),batch:val('milk-batch'),received:CLOCK,window:'按已审核个体SOP',deadline,device:d.id,state:d.state==='在线'?'可用':'已隔离',actor:val('milk-actor')});
+  if(!deadline||dateNum(deadline)<=now()||!val('milk-batch')||!checked('milk-sop'))return fail('请填写来源批次和使用截止，并完成核对。');
+  S.milk.push({id:code,baby:b.id,mother:b.mother,volume,source:val('milk-source'),batch:val('milk-batch'),received:CLOCK,window:'已登记使用截止',deadline,device:d.id,state:d.state==='在线'?'可用':'已隔离',actor:val('milk-actor')});
   if(d.state!=='在线'&&!d.impact.includes(code))d.impact.push(code);audit('登记新奶源奶瓶',code+' / '+b.name+' / '+volume+'mL','milk','奶源',code);return commit(d.state==='在线'?'新奶瓶已登记。':'设备异常，新奶瓶已隔离待核实。');
  }
  case 'milk-detail':return milkDetail(id);
@@ -1233,8 +1211,8 @@ function handleAction(a,id='',el=null){
   if(x.state!=='已隔离')return fail('当前奶瓶已经处理，不重复执行。');
   if(handler===reviewer||val('milk-evidence').length<10||!checked('milk-review-check'))return fail('需要两位不同人员，并填写至少10个字的复核依据。');
   if(choice==='有依据解除隔离'&&(find('devices',x.device).state!=='在线'||dateNum(x.deadline)<=now()))return fail('设备未恢复或已超过登记时限，不能解除隔离。');
-  x.state=choice==='按SOP弃置'?'已弃置':'可用';x.resolution=val('milk-evidence');x.handler=handler;x.reviewedBy=reviewer;if(x.state==='已弃置')x.discarded=x.volume;
-  audit('完成隔离奶瓶独立处置',id+' / '+x.state,'milk','奶源',id);return commit('本奶瓶处置已记录，其他奶瓶未自动解除隔离。');
+  x.state=choice==='弃置'?'已弃置':'可用';x.resolution=val('milk-evidence');x.handler=handler;x.reviewedBy=reviewer;if(x.state==='已弃置')x.discarded=x.volume;
+  audit('完成隔离奶瓶独立处置',id+' / '+x.state,'milk','奶源',id);return commit('本奶瓶处置已记录。请继续处理其余隔离奶瓶。');
  }
  case 'milk-discard':return modal('登记奶瓶弃置',`${kv([['奶瓶',id],['当前状态',find('milk',id).state]])}${field('弃置原因',area('discard-reason'))}${check('discard-checked','已实际完成弃置并核对奶瓶，操作不可恢复为可用。')}`,btn('取消','close')+btn('确认弃置','milk-discard-save',id,'danger'));
  case 'milk-discard-save':{
@@ -1246,7 +1224,7 @@ function handleAction(a,id='',el=null){
  case 'appointment':return appointmentOpen(id);
  case 'appointment-cancel':return confirmAction('取消尚未执行预约','释放此次人员、场地和1次预留权益；已经完成的服务不能从这里撤销。','appointment-cancel-save',id,'取消预约');
  case 'appointment-cancel-save':{
-  if(!online())return;const x=find('appointments',id);if(x.state!=='已预约')return fail('预约已经执行或取消，不能重复释放。');if(!checked('action-confirm'))return fail('请确认取消。');x.state='已取消';find('contracts',x.rights).rights.heldAppointments--;audit('取消预约并释放预留',x.id,'appointments','预约',id);return commit('预留已释放，没有扣减实际服务次数。');
+  if(!online())return;const x=find('appointments',id);if(x.state!=='已预约')return fail('预约已经执行或取消，不能重复释放。');if(!checked('action-confirm'))return fail('请确认取消。');x.state='已取消';find('contracts',x.rights).rights.heldAppointments--;audit('取消预约并释放预留',x.id,'appointments','预约',id);return commit('预留已释放。');
  }
  case 'appointment-complete':{
   if(!online())return;const x=find('appointments',id),m=mtr(x.mother),c=find('contracts',x.rights);
@@ -1256,7 +1234,7 @@ function handleAction(a,id='',el=null){
   if(val('appt-result').length<5||!checked('appt-done'))return fail('请填写实际执行情况并核对完成。');
   x.state='已完成';x.result=val('appt-result');x.actual=CLOCK;c.rights.heldAppointments--;c.rights.usedAppointments++;
   S.records.unshift({id:inc('REC'),subject:m.id,type:x.project,note:x.result,actor:x.staff,time:CLOCK,source:x.id});
-  audit('服务实际完成并核销1次',m.name+' / '+x.id,'appointments','履约',id);return commit('已记录服务事实并核销一次权益，不会重复扣减。');
+  audit('服务实际完成并核销1次',m.name+' / '+x.id,'appointments','履约',id);return commit('已记录服务并核销一次权益。');
  }
  case 'rights-tab':U.rightsTab=id;return render();
  case 'right-convert':return rightConvert(id||U.contract);
@@ -1295,7 +1273,7 @@ function handleAction(a,id='',el=null){
   p.approvals.push({actor,time:CLOCK,stage:p.state==='试算完成'?'业务复核':'财务终审',note:val('pay-review-note'),version:p.version});
   p.state=p.state==='试算完成'?'业务已复核':'财务已终审';audit('薪酬快照审核推进',id+' / '+p.state,'payroll','薪酬',id);return commit('当前版本审核已记录。');
  }
- case 'pay-lock':return confirmAction('锁定已终审工资快照','锁定后不允许重新计算覆盖。更正需要另建差额调整，不直接改已付历史。','pay-lock-save',id,'锁定快照');
+ case 'pay-lock':return confirmAction('锁定已终审工资快照','锁定后不可重算覆盖。如需更正，请另建差额调整。','pay-lock-save',id,'锁定快照');
  case 'pay-lock-save':{
   if(!online())return;let p=find('payroll',id);if(p.state!=='财务已终审'||!p.snapshot||p.approvals.length<2)return fail('工资尚未完成业务复核和财务终审。');
   if(!checked('action-confirm'))return fail('请确认锁定影响。');p.state='已锁定';p.lockedAt=CLOCK;audit('锁定薪酬版本',p.id+' / V'+p.version,'payroll','薪酬',id);return commit('工资快照已锁定，等待独立回执核验。');
@@ -1313,7 +1291,7 @@ function handleAction(a,id='',el=null){
  case 'pay-adjust':return payAdjust(id);
  case 'pay-adjust-save':{
   if(!online())return;let p=find('payroll',id),amount=Number(val('adjust-amount'));if(!val('adjust-amount')||!Number.isFinite(amount)||amount===0||Math.abs(amount)>100000||val('adjust-reason').length<10)return fail('请输入非零合理金额，并填写至少10字的依据。');
-  const x={id:inc('ADJ'),amount:Math.round(amount*100)/100,type:val('adjust-type'),reason:val('adjust-reason'),state:'待审核',time:CLOCK};p.adjustments.push(x);audit('提交独立工资调整',id+' / '+x.id+' / 不改原快照','payroll','调整',x.id);return commit('独立调整已提交待审核，原锁定金额保持不变。');
+  const x={id:inc('ADJ'),amount:Math.round(amount*100)/100,type:val('adjust-type'),reason:val('adjust-reason'),state:'待审核',time:CLOCK};p.adjustments.push(x);audit('提交独立工资调整',id+' / '+x.id,'payroll','调整',x.id);return commit('调整已提交待审核。');
  }
  case 'pay-audit':{
   const p=find('payroll',id);return drawer('工资版本与审阅记录',`${kv([['工资单',p.id],['人员',ename(p.staff)],['当前状态',p.state],['快照版本','V'+p.version],['快照金额',money(payAmount(p).total,2)]])}<div class="divider"></div><h3>审批记录</h3>${(p.approvals||[]).map(x=>`<div class="softbox mt12"><b>${ename(x.actor)} · ${x.stage}</b><p class="small">${h(x.note)}</p></div>`).join('')||'<p class="small muted mt12">暂无新增审批记录。</p>'}<h3 class="mt20">付款回执</h3>${(p.receipts||[]).map(x=>`<p class="small mt8">${h(x.ref)} · ${money(x.amount)} · ${x.state}</p>`).join('')||'<p class="small muted mt12">暂无新增回执</p>'}`);
@@ -1331,11 +1309,11 @@ function handleAction(a,id='',el=null){
  case 'meal-check-save':{
   if(!online())return;let x=find('meals',id),m=mtr(x.mother),action=val('meal-action'),bad=mealConflict(x);
   if(x.state==='已送达')return fail('已送达，不重复配送。');if(bad.length)return fail('存在原料禁忌冲突，请先替餐复核。');
-  if(val('meal-code')!==m.id)return fail('母亲身份不匹配，房间不能作为唯一标识。');
+  if(val('meal-code')!==m.id)return fail('母亲身份不匹配，请核对身份码。');
   if(m.state!=='在所'&&action!=='暂缓配送')return fail('母亲当前不在所，请登记暂缓或核实实际接收安排。');
   if(!checked('meal-check-done')||val('meal-note').length<5)return fail('请填写执行说明并完成身份/批次核验。');
-  if(action==='确认实际送达'&&x.state!=='已备餐')return fail('请先完成配餐核验，不能跳过备餐与版本核对。');
-  if(action==='确认实际送达'&&CLOCK<x.time&&val('meal-note').length<12)return fail('早于计划配送时间，请具体填写提前送达原因（至少12字），不能提前记为已送达。');
+  if(action==='确认实际送达'&&x.state!=='已备餐')return fail('请先完成配餐核验。');
+  if(action==='确认实际送达'&&CLOCK<x.time&&val('meal-note').length<12)return fail('早于计划配送时间，请填写提前送达原因（至少12字）。');
   x.state=action==='确认实际送达'?'已送达':action==='暂缓配送'?'暂缓配送':'已备餐';
   x.deliveryNote=val('meal-note');x.actor=val('meal-actor');if(x.state==='已送达')x.deliveredAt=CLOCK;
   audit('餐食实际状态更新',m.name+' / '+x.state+' / V'+x.version,'meals','配餐',id);return commit('餐单状态和配送记录已更新。');
@@ -1377,7 +1355,7 @@ function handleAction(a,id='',el=null){
  case 'event-measure-save':{
   if(!online())return;let e=find('events',id),submit=val('event-result')==='提交独立复核';
   if(!['待响应','处理中'].includes(e.state))return fail('事件已经进入后续处理。');if(val('event-measure-note').length<8)return fail('请填写至少8个字的实际措施。');
-  if(submit&&!causeResolved(e))return fail('关联业务条件尚未解决，不能提交关闭复核。');
+  if(submit&&!causeResolved(e))return fail('关联事项尚未处理，暂不能提交复核。');
   e.actions.push({actor:val('event-actor'),time:CLOCK,note:val('event-measure-note')});e.state=submit?'待复核':'处理中';audit('记录事件处理措施',id+' / '+e.state,'quality','异常',id);return commit('处理措施已留痕。');
  }
  case 'event-review':return eventReview(id);
@@ -1385,7 +1363,7 @@ function handleAction(a,id='',el=null){
   if(!online())return;let e=find('events',id),actor=val('event-reviewer'),pass=val('event-review-result')==='复核通过并闭环';
   if(e.state!=='待复核')return fail('此事件未处于待复核状态。');
   if(e.actions.some(x=>x.actor===actor)||!checked('event-review-checked')||val('event-review-note').length<8)return fail('复核人不能是本次处理人，并须填写至少8字的复核意见。');
-  if(pass&&!causeResolved(e))return fail('关联业务原因仍未解决，不允许仅关闭红点。');
+  if(pass&&!causeResolved(e))return fail('关联事项尚未解决，暂不能闭环。');
   e.reviewedBy=actor;e.reviewNote=val('event-review-note');e.state=pass?'已闭环':'处理中';audit('事件独立复核',id+' / '+e.state,'quality','异常',id);return commit(pass?'复核通过，事件已闭环。':'事件已退回继续处理。');
  }
  case 'inspection':return inspectionModal();
@@ -1404,7 +1382,7 @@ function handleAction(a,id='',el=null){
   if(val('device-worker')===val('device-reviewer')||val('device-evidence').length<8||!val('device-reading')||!checked('device-done'))return fail('需要两位不同人员、现场读数及至少8字的复机依据。');
   d.state='在线';d.quality='人工复核';d.reading=val('device-reading');d.last=CLOCK;d.fixed=true;d.restoreEvidence=val('device-evidence');
   d.impact.forEach(key=>{let r=find('rooms',key);if(r&&r.state==='维修中'){r.state='待清洁';let j=S.jobs.find(j=>j.room===key&&j.state==='维修中');if(j)j.state='待开始';}});
-  audit('设备复机独立核验完成',id+' / 隔离物品未自动解锁','equipment','设备',id);return commit('设备恢复已记录，相关奶瓶或房间仍需独立处置。');
+  audit('设备复机独立核验完成',id,'equipment','设备',id);return commit('设备已恢复，请继续处理关联奶瓶或房间。');
  }
  case 'device-report':return deviceReport();
  case 'device-report-one':return deviceReport(id);
@@ -1416,9 +1394,9 @@ function handleAction(a,id='',el=null){
   let existing=S.events.find(e=>e.subject===d.id&&e.state!=='已闭环');
   if(existing){existing.detail+='；新增情况：'+val('device-report-note');existing.state='处理中';}
   else S.events.unshift({id:inc('EV'),title:d.name+'故障待处理',kind:'设备',level:'优先',state:'待响应',where:d.location,owner:'E002',subject:d.id,time:CLOCK,detail:val('device-report-note'),cause:d.type==='冷链'?'milk':null,actions:[]});
-  audit('设备故障与影响范围更新',d.id,'equipment','设备',d.id);return commit('故障已记录，关联可用奶源已隔离；现场处置不等待云端。');
+  audit('设备故障与影响范围更新',d.id,'equipment','设备',d.id);return commit('故障已记录，关联可用奶瓶已隔离。');
  }
- case 'device-samples':return drawer('采样与数据质量',table(['设备','最近值','接收时间','质量'],S.devices.map(d=>tr([d.name,d.reading,d.last,d.quality])))+note('失联数据保留最近值，并明确标记为过期。'));
+ case 'device-samples':return drawer('采样与数据质量',table(['设备','最近值','接收时间','质量'],S.devices.map(d=>tr([d.name,d.reading,d.last,d.quality])))+note('失联设备保留最近值，并标记为过期。'));
  case 'analysis-view':U.analysisView=id;return render();
  case 'system-tab':U.systemTab=id;return render();
  case 'sync-retry':{
@@ -1428,12 +1406,12 @@ function handleAction(a,id='',el=null){
  case 'config-save':{
   if(!online())return;let hours=Number(val('cfg-soft')),clean=Number(val('cfg-clean')),first=Number(val('cfg-pay'));
   if(!Number.isInteger(hours)||hours<1||hours>168||!Number.isInteger(clean)||clean<1||clean>24||!Number.isFinite(first)||first<0||first>100)return fail('软占1–168小时、清洁1–24小时、首款0–100%。');
-  S.config.softHours=hours;S.config.cleanHours=clean;S.config.firstPayment=first;audit('更新后续业务规则参数','现有已确认记录不被追溯改写','system','配置');save();render();return toast('后续校验使用新参数，历史事实没有改变。');
+  S.config.softHours=hours;S.config.cleanHours=clean;S.config.firstPayment=first;audit('更新后续业务规则参数','参数已更新','system','配置');save();render();return toast('参数已更新。');
  }
- case 'draft-sync':return confirmAction('核实并补录离线草稿','将普通记录补录到对象时间线，并保留离线来源。此操作不自动完成任务、不代替关键核验。','draft-sync-save',id,'核实后补录');
+ case 'draft-sync':return confirmAction('核实并补录离线草稿','将草稿补录到对象时间线。','draft-sync-save',id,'核实后补录');
  case 'draft-sync-save':{
   if(!online())return;const d=find('drafts',id);if(!d)return fail('草稿已处理。');if(!checked('action-confirm'))return fail('请核对草稿真实性与重复情况。');
-  S.records.unshift({...d,id:inc('REC'),source:'经人工核对的离线补录 / '+d.id});S.drafts=S.drafts.filter(x=>x.id!==id);audit('补录已核实离线记录',id,'system','补录',id);return commit('草稿已补录到对象时间线；任务和关键交易未自动完成。');
+  S.records.unshift({...d,id:inc('REC'),source:'经人工核对的离线补录 / '+d.id});S.drafts=S.drafts.filter(x=>x.id!==id);audit('补录已核实离线记录',id,'system','补录',id);return commit('草稿已补录到对象时间线。');
  }
  default: console.warn('Unknown action',a,id);return toast('此操作暂未接入：'+a,true);
  }
